@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scaffold>
+
+    <outputGroup name="base">
+        <output templateName="ControllerDefaultBase.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{APPLICATION_DIR}/BaseController.php"/>
+        <output templateName="ControllerDefaultModule.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/controllers/AbstractController.php"/>
+        <output templateName="ControllerDefaultIndex.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/controllers/IndexController.php"/>
+        <output templateName="ViewDefaultIndex.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/views/scripts/index/index.phtml"/>
+    </outputGroup>
+
+    <outputGroup name="auth" setVariable="renderAuth">
+        <output templateName="ControllerAuthLogin.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/controllers/LoginController.php"/>
+        <output templateName="ControllerAuthLogout.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/controllers/LogoutController.php"/>
+        <output templateName="ViewAuthLogin.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/views/scripts/login/index.phtml"/>
+    </outputGroup>
+
+    <outputGroup name="crud">
+        <output templateName="ControllerStandard.php" canOverride="0" acceptMapTable="1"
+                outputPath="{MODULE_BASE_DIR}/controllers/{TABLE_CAMEL_NAME}Controller.php"/>
+        <output templateName="ViewCrudCreate.php" canOverride="0" acceptMapTable="0"
+                outputPath="{MODULE_BASE_DIR}/views/scripts/{TABLE_CONTROLLER_NAME}/create.phtml"/>
+        <output templateName="ViewCrudIndex.php" canOverride="0" acceptMapTable="0"
+                outputPath="{MODULE_BASE_DIR}/views/scripts/{TABLE_CONTROLLER_NAME}/index.phtml"/>
+        <output templateName="ViewPartialPagination.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{MODULE_BASE_DIR}/views/scripts/pagination_control.phtml"/>
+        <output templateName="ViewCrudUpdate.php" canOverride="0" acceptMapTable="0"
+                outputPath="{MODULE_BASE_DIR}/views/scripts/{TABLE_CONTROLLER_NAME}/update.phtml"/>
+    </outputGroup>
+
+    <outputGroup name="form">
+        <output templateName="Form.php" canOverride="0" acceptMapTable="0"
+                outputPath="{MODULE_BASE_DIR}/forms/Edit{TABLE_FORM_NAME}.php"/>
+    </outputGroup>
+
+    <js>
+        <file path="jquery.js"/>
+        <file path="bootstrap.js"/>
+        <file path="scaffold.css"/>
+    </js>
+    <css>
+        <file path="bootstrap.css"/>
+        <file path="bootstrap-theme.css"/>
+        <file path="scaffold.css"/>
+    </css>
+
+</scaffold>

@@ -1,0 +1,54 @@
+Table options
+- disable  - remove in propel modify
+
+
+Field options
+- disable  - remove in propel modify
+
+
+
+
+
+Behaviors:
+
+- hashable
+  <behavior name="hashable">
+      <parameter name="rank_column" value="my_rank_column" />
+      <parameter name="use_scope" value="true" />
+      <parameter name="scope_column" value="user_id" />
+  </behavior>
+
+- sortable
+  <behavior name="sortable">
+    <parameter name="rank_column" value="my_rank_column" />
+    <parameter name="use_scope" value="true" />
+    <parameter name="scope_column" value="user_id" />
+  </behavior>
+
+- slugable
+ <behavior name="sluggable">
+    <parameter name="slug_column" value="url" />
+    <parameter name="slug_pattern" value="/posts/{Title}" />
+    <parameter name="replace_pattern" value="/[^\w\/]+/u" />
+    <parameter name="replacement" value="-" />
+    <parameter name="separator" value="/" />
+    <parameter name="permanent" value="true" />
+    <parameter name="scope_column" value="" />
+ </behavior>
+- aggregate
+
+- nested set
+ <behavior name="nested_set">
+    <parameter name="left_column" value="lft" />
+    <parameter name="right_column" value="rgt" />
+    <parameter name="level_column" value="lvl" />
+    <parameter name="use_scope" value="true" />
+    <parameter name="scope_column" value="thread_id" />
+ </behavior>
+
+- timestampable (keep track of the date of creation and last update)
+  <behavior name="timestampable">
+    <parameter name="create_column" value="my_create_date" />
+    <parameter name="update_column" value="my_update_date" />
+  </behavior>
+

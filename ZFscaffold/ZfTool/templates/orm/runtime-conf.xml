@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<config>
+    <!--
+        <log>
+            <ident>schema</ident>
+            <name>propel.log</name>
+            <level>2</level>
+            <type>file</type>
+        </log>
+    -->
+    <propel>
+        <datasources default="crm">
+            <datasource id="crm">
+                <adapter>mysql</adapter>
+                <connection>
+                    <!--<classname>PDO</classname>-->
+                    <dsn>mysql:host=dev;dbname=cc</dsn>
+                    <user>dafi</user>
+                    <password>alamakota</password>
+                    <options>
+                        <option id="ATTR_PERSISTENT">false</option>
+                    </options>
+                    <attributes>
+                        <attribute id="ATTR_EMULATE_PREPARES">true</attribute>
+                    </attributes>
+                    <settings>
+                        <setting id="charset">utf8</setting>
+                    </settings>
+                </connection>
+
+            </datasource>
+        </datasources>
+    </propel>
+</config>
