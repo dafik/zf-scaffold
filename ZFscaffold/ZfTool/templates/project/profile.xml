@@ -8,28 +8,33 @@
                 <file filesystemName="README.txt" defaultContentCallback="Zend_Tool_Project_Provider_Project::getDefaultReadmeContents"/>
                 <applicationConfigFile type="ini" file="test"/>
             </configsDirectory>
-            <controllersDirectory>
-                <controllerFile controllerName="Index">
-                    <actionMethod actionName="index"/>
-                </controllerFile>
-                <controllerFile controllerName="Error"/>
-            </controllersDirectory>
+
             <formsDirectory enabled="false"/>
-            <layoutsDirectory enabled="false"/>
-            <modelsDirectory/>
-            <modulesDirectory enabled="false"/>
-            <viewsDirectory>
-                <viewScriptsDirectory>
-                    <viewControllerScriptsDirectory forControllerName="Index">
-                        <viewScriptFile forActionName="index"/>
-                    </viewControllerScriptsDirectory>
-                    <viewControllerScriptsDirectory forControllerName="Error">
-                        <viewScriptFile forActionName="error"/>
-                    </viewControllerScriptsDirectory>
-                </viewScriptsDirectory>
-                <viewHelpersDirectory/>
-                <viewFiltersDirectory enabled="false"/>
-            </viewsDirectory>
+            <layoutsDirectory/>
+            <modelsDirectory enabled="false"/>
+            <modulesDirectory enabled="true">
+                <moduleDirectory moduleName="default">
+                    <controllersDirectory>
+                        <controllerFile controllerName="Index">
+                            <actionMethod actionName="index"/>
+                        </controllerFile>
+                        <controllerFile controllerName="Error"/>
+                    </controllersDirectory>
+                    <viewsDirectory>
+                        <viewScriptsDirectory>
+                            <viewControllerScriptsDirectory forControllerName="Index">
+                                <viewScriptFile forActionName="index"/>
+                            </viewControllerScriptsDirectory>
+                            <viewControllerScriptsDirectory forControllerName="Error">
+                                <viewScriptFile forActionName="error"/>
+                            </viewControllerScriptsDirectory>
+                        </viewScriptsDirectory>
+                        <viewHelpersDirectory/>
+                        <viewFiltersDirectory enabled="false"/>
+                    </viewsDirectory>
+                </moduleDirectory>
+            </modulesDirectory>
+
             <bootstrapFile/>
         </applicationDirectory>
         <dataDirectory enabled="false">
@@ -47,13 +52,14 @@
             <zfStandardLibraryDirectory enabled="false"/>
         </libraryDirectory>
         <publicDirectory>
-            <publicStylesheetsDirectory enabled="false"/>
-            <publicScriptsDirectory enabled="false"/>
-            <publicImagesDirectory enabled="false"/>
+            <publicStylesheetsDirectory enabled="false" filesystemName="css"/>
+            <customDirectory filesystemName="css"/>
+            <publicScriptsDirectory enabled="true"/>
+            <publicImagesDirectory enabled="true"/>
             <publicIndexFile/>
             <htaccessFile/>
         </publicDirectory>
         <projectProvidersDirectory enabled="false"/>
-        <temporaryDirectory enabled="false"/>
+        <temporaryDirectory enabled="true"/>
     </projectDirectory>
 </projectProfile>

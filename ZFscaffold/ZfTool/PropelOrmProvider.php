@@ -3,9 +3,9 @@
 // PHP < 5.3 compatibility
 !defined('__DIR__') || define('__DIR__', dirname(__FILE__));
 
-require_once __DIR__ . '/../../ZFscaffold/ZfTool/Exception.php';
-require_once __DIR__ . '/../../ZFscaffold/Merger.php';
-require_once __DIR__ . '/../../ZFscaffold/Inflector.php';
+//require_once __DIR__ . '/../../ZFscaffold/ZfTool/Exception.php';
+//require_once __DIR__ . '/../../ZFscaffold/Merger.php';
+//require_once __DIR__ . '/../../ZFscaffold/Inflector.php';
 
 /**
  * This class defines a provider for the ZF tool, it allows you generate

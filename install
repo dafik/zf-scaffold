@@ -1,0 +1,3 @@
+php.include_path = "/usr/share/php/libzend-framework-php:.:/usr/share/php:/usr/share/pear:/srv/vhosts/local/mt/tools"
+basicloader.classes.21 = "ZFscaffold_ZfTool_ScaffoldProvider"
+basicloader.classes.22 = "ZFscaffold_ZfTool_PropelOrmProvider"

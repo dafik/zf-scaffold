@@ -37,14 +37,32 @@ require_once __DIR__ . '/../../ZFscaffold/ZfTool/Exception.php';
  * @license http://www.gnu.org/licenses/lgpl-3.0.txt
  * @version $Id: ZodekenProvider.php 67 2012-08-25 11:47:08Z me@ndthuan.com $
  */
-class ZFscaffold_ZfTool_ProjectProvider extends Zend_Tool_Framework_Provider_Abstract
+class ZFscaffold_ZfTool_ZFProjectProvider extends Zend_Tool_Framework_Provider_Abstract
 {
     /**
      * The public method that would be exposed into ZF tool
      */
     public function generate()
     {
+        /** @var $projectProvider Zend_Tool_Project_Provider_Project */
+        $projectProvider = $this->_registry->getProviderRepository()->getProvider('project');
 
+        $contextRegistry = Zend_Tool_Project_Context_Repository::getInstance();
+        $contextRegistry->addContextsFromDirectory(__DIR__ . '/Context', 'ZFscaffold_ZfTool_Context_');
+
+        $file = __DIR__ . '/templates/project/profile.xml';
+
+        $projectProvider->create(null, 'default', $file);
+
+    }
+
+    public static function bootstrapFile()
+    {
+
+    }
+
+    public static function publicIndexFile()
+    {
 
     }
 
