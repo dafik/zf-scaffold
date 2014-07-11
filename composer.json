@@ -14,7 +14,7 @@
         "dafik/dfi": "@dev",
         "zendframework/zendframework1": "1.12.7",
         "propel/propel1": "1.7.1"
-    }
+    },
     "autoload": {
         "psr-0": {
             "ZFscaffold_": "src/"
