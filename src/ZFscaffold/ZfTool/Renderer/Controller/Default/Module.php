@@ -51,7 +51,7 @@ class ZFscaffold_ZfTool_Renderer_Controller_Default_Module extends ZFscaffold_Zf
     private function prepareCSS()
     {
         $css = array();
-        foreach ($this->getObject('cssFiles') as $file) {
+        foreach ($this->getObject('staticFiles')['css'] as $file => $path) {
             $media = 'screen';
             if (is_array($file)) {
                 $tmp = $file;
@@ -70,7 +70,7 @@ class ZFscaffold_ZfTool_Renderer_Controller_Default_Module extends ZFscaffold_Zf
     private function prepareJS()
     {
         $js = array();
-        foreach ($this->getObject('jsFiles') as $file) {
+        foreach ($this->getObject('staticFiles')['js'] as $file => $path) {
 
             $js[] = '$this->view->headScript()->appendFile(_JS . \'' . $file . '\');';
         }

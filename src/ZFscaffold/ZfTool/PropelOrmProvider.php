@@ -54,7 +54,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
     {
 
         $currentWorkingDirectory = getcwd();
-        $ormDir = $currentWorkingDirectory . '/tools/generator/schema';
+        $ormDir = $currentWorkingDirectory . '/vendor/dafik/generator/schema';
         $buildFile = $ormDir . '/build.properties';
         $runtimeFile = $ormDir . '/runtime-conf.xml';
 
@@ -82,39 +82,46 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
         }
         //$buildConfig = new Zend_Config_Ini($buildFile);
 
-        $currentWorkingDirectory = $currentWorkingDirectory . '/tools/generator/schema';
-        chdir($currentWorkingDirectory);
+        //$currentWorkingDirectory = $currentWorkingDirectory . '/tools/generator/schema';
+        //chdir($currentWorkingDirectory);
 
-        $command = 'propel-gen reverse';
-        if (empty(shell_exec("which $command"))) {
-            throw new ZFscaffold_Exception('command ' . $command . ' not found');
-        };
-        $out = array();
-        $val = 0;
-        exec($command, $out, $val);
-        if ($val) {
-            foreach ($out as $line) {
-                echo $line . "\n";
-            }
-        }
+        $argv = array(
+            'scriptname',
+            '-f',
+            $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
+            '-Dusing.propel-gen=true',
+            '-Dproject.dir=' . $currentWorkingDirectory . '/vendor/dafik/generator/schema',
+            'reverse',
+            '-logger',
+            'phing.listener.AnsiColorLogger'
 
-        $schemaPath = $currentWorkingDirectory;
+        );
+
+
+        putenv("PHING_HOME=" . realpath($currentWorkingDirectory . '/vendor/phing/phing'));
+
+        include '/srv/vhosts/local/test/vendor/phing/phing/bin/phing.php';
+
+        $schemaPath = $ormDir;
         $mergeConfig = $schemaPath . '/merge.properties';
 
 
         echo("\nmodifiying schema\n");
-        $merger = new ZFscaffold_Merger($schemaPath, $mergeConfig);
+        $merger = new ZFscaffold_ZfTool_Generator_Propel_Merger();
         @$merger->merge($schemaPath, $mergeConfig);
 
-        $command = 'propel-gen';
-        $out = array();
-        $val = 0;
-        exec($command, $out, $val);
-        if ($val) {
-            foreach ($out as $line) {
-                echo $line . "\n";
-            }
-        }
+        $argv = array(
+            'scriptname',
+            '-f',
+            $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
+            '-Dusing.propel-gen=true',
+            '-Dproject.dir=' . $currentWorkingDirectory . '/vendor/dafik/generator/schema',
+            '-logger',
+            'phing.listener.AnsiColorLogger'
+
+        );
+
+        include '/srv/vhosts/local/test/vendor/phing/phing/bin/phing.php';
 
         if (false !== strpos($currentWorkingDirectory, 'tools')) {
             $pos = strpos($currentWorkingDirectory, 'tools');
@@ -182,7 +189,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
             }
         }
 
-        $currentWorkingDirectory = getcwd();
+        //$currentWorkingDirectory = getcwd();
 
         $configDir = str_replace(
             '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
@@ -257,13 +264,8 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
 
         //$path = realpath(APPLIATION_PATH . '/../tools/');
 
-        if (false !== strpos($currentWorkingDirectory, 'tools')) {
-            $pos = strpos($currentWorkingDirectory, 'tools');
-            $currentWorkingDirectory = substr($currentWorkingDirectory, 0, $pos - 1);
-            chdir($currentWorkingDirectory);
-        }
 
-        $ormDir = $currentWorkingDirectory . '/tools/generator';
+        $ormDir = $currentWorkingDirectory . '/vendor/dafik/generator';
         $schemaDir = $ormDir . '/schema';
 
         if (!file_exists($schemaDir)) {
@@ -320,7 +322,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
             $this->password = $_password;
         }
 
-        $builderPath = realpath($schemaDir . '/../builder');
+        $builderPath = realpath(__DIR__ . '/Generator/Propel/builder');
         $builderPathParts = explode(DIRECTORY_SEPARATOR, $builderPath);
 
         $options = array();
@@ -351,7 +353,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
     private function _createRuntime($schemaDir, $force)
     {
         $configPath = $schemaDir . '/runtime-conf.xml';
-        $template = dirname(__FILE__) . '/ormTemplate/runtime-conf.xml';
+        $template = __DIR__ . '/templates/orm/runtime-conf.xml';
 
         $sxe = simplexml_load_file($template);
 

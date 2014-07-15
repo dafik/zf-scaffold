@@ -5,12 +5,25 @@
         <applicationDirectory>
             <apisDirectory enabled="false"/>
             <configsDirectory>
-                <file filesystemName="README.txt" defaultContentCallback="Zend_Tool_Project_Provider_Project::getDefaultReadmeContents"/>
-                <applicationConfigFile type="ini" file="test"/>
-            </configsDirectory>
+                <customDirectory filesystemName="messages">
+                    <file filesystemName="confirmation.ini" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent" sourceName="messages/confirmation.ini"/>
+                    <file filesystemName="debug.ini" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent" sourceName="messages/debug.ini"/>
+                    <file filesystemName="error.ini" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent" sourceName="messages/error.ini"/>
+                    <file filesystemName="notice.ini" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent" sourceName="messages/notice.ini"/>
+                    <file filesystemName="validation.ini" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent" sourceName="messages/validation.ini"/>
 
+                </customDirectory>
+                <file filesystemName="README.txt" defaultContentCallback="Zend_Tool_Project_Provider_Project::getDefaultReadmeContents"/>
+                <file filesystemName="application.ini" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent"/>
+                <file filesystemName="constants.php" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent"/>
+                <!--<applicationConfigFile type="ini" file="test"/>-->
+            </configsDirectory>
             <formsDirectory enabled="false"/>
-            <layoutsDirectory/>
+            <layoutsDirectory>
+                <layoutScriptsDirectory>
+                    <layoutScriptFile layoutName="layout"/>
+                </layoutScriptsDirectory>
+            </layoutsDirectory>
             <modelsDirectory enabled="false"/>
             <modulesDirectory enabled="true">
                 <moduleDirectory moduleName="default">
@@ -34,8 +47,8 @@
                     </viewsDirectory>
                 </moduleDirectory>
             </modulesDirectory>
-
-            <bootstrapFile/>
+            <file filesystemName="Bootstrap.php" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent"/>
+            <!--<bootstrapFile/>-->
         </applicationDirectory>
         <dataDirectory enabled="false">
             <cacheDirectory enabled="false"/>
@@ -48,15 +61,17 @@
         <docsDirectory>
             <file filesystemName="README.txt" defaultContentCallback="Zend_Tool_Project_Provider_Project::getDefaultReadmeContents"/>
         </docsDirectory>
-        <libraryDirectory>
+<!--        <libraryDirectory>
             <zfStandardLibraryDirectory enabled="false"/>
-        </libraryDirectory>
+        </libraryDirectory>-->
+        <customDirectory filesystemName="logs"/>
         <publicDirectory>
             <publicStylesheetsDirectory enabled="false" filesystemName="css"/>
             <customDirectory filesystemName="css"/>
             <publicScriptsDirectory enabled="true"/>
             <publicImagesDirectory enabled="true"/>
-            <publicIndexFile/>
+            <file filesystemName="index.php" defaultContentCallback="ZFscaffold_ZfTool_ScaffoldProvider::copyFileContent" sourceName="publicIndex.php"/>
+            <!--<publicIndexFile/>-->
             <htaccessFile/>
         </publicDirectory>
         <projectProvidersDirectory enabled="false"/>

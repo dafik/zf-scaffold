@@ -1,6 +1,6 @@
 <?php
 
-class ZFscaffold_Merger
+class ZFscaffold_ZfTool_Generator_Propel_Merger
 {
     private $references = array();
     /**
@@ -19,7 +19,11 @@ class ZFscaffold_Merger
 
 
         $this->schemaXml = $schemaPath . '/schema.xml';
-        $this->config = new Zend_Config_Ini($config);
+        if (Dfi_File::isReadable($config)) {
+            $this->config = new Zend_Config_Ini($config);
+        } else {
+            $this->config = new Zend_Config(array());
+        }
 
         $files = array();
 
@@ -311,7 +315,7 @@ class ZFscaffold_Merger
     {
         if (defined('PROJECT_IN_ENGLISH') && PROJECT_IN_ENGLISH == true) {
             // require_once('Inflector.php');
-            $out = ZFscaffold_Inflector::singularize($name);
+            $out = ZFscaffold_ZfTool_Generator_Propel_Inflector::singularize($name);
             echo $name . '->' . $out . "\n";
             return $out;
         }

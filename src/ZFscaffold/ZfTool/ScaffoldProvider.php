@@ -51,7 +51,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
     /**
      * @var string
      */
-    protected $_outputTemplate = 'default';
+    protected $_outputTemplate = 'bootstrap3';
     /**
      * @var  string
      */
@@ -90,14 +90,6 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
     protected $_authActivityField = 0;
 
-    /**
-     * @return boolean
-     */
-    public function getForceOverWrite()
-    {
-        return $this->forceOverWrite;
-    }
-
 
     /**
      * The public method that would be exposed into ZF tool
@@ -127,12 +119,12 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         $this->cwd = getcwd();
         $this->_initPaths($this->cwd . '/application');
         $this->_readAppConfig();
-        $includeConfig = $this->getAppConfig()->production->phpSettings->include_path;
+        $includeConfig = Dfi_App_Config::get('phpSettings.include_path', '');
 
-        if (null !== $includeConfig) {
-            $this->_initIncludePaths($includeConfig);
-        }
-        Zend_Loader_Autoloader::getInstance()->registerNamespace('Dfi_');
+
+        $this->_initIncludePaths($includeConfig);
+
+        Zend_Loader_Autoloader::getInstance()->registerNamespace('Dfi_')->suppressNotFoundWarnings(true);
 
 
         foreach (Dfi_App_Config::getConfig(true, false, array(), 'scaffold') as $key => $value) {
@@ -142,11 +134,13 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
             }
         }
 
-        $propelConfig = Dfi_App_Config::get('db.config');
+        $propelConfig = Dfi_App_Config::get('db.config', null);
         if (null === $propelConfig) {
-            throw new ZFscaffold_ZfTool_Exception(
-                "Propel configs not found in your application.ini"
-            );
+
+            $projectProvider = $this->_registry->getProviderRepository()->getProvider('propelorm');
+            $projectProvider->generate();
+
+
         }
         $this->_initPropel($propelConfig);
         $this->_packageName = $this->_getCamelCase(Propel::getConfiguration()['datasources']['default']);
@@ -227,8 +221,12 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
 
                 $helperClass = 'ZFscaffold_ZfTool_Renderer_' . $objects['c2d1']->filter(str_replace('.php', '', basename($params['templateFile'])));
-                /** @var $helper ZFscaffold_ZfTool_Renderer_Abstract */
-                $helper = new $helperClass($this);
+                if (class_exists($helperClass)) {
+                    /** @var $helper ZFscaffold_ZfTool_Renderer_Abstract */
+                    $helper = new $helperClass($this, $this->getForceOverWrite());
+                } else {
+                    $helper = new ZFscaffold_ZfTool_Renderer_Standard($this, $this->getForceOverWrite());
+                }
 
                 $helper->setTemplate($params['templateFile']);
                 $helper->setDestination($params['fileName']);
@@ -240,9 +238,38 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
             }
             $isFirst = false;
         }
-
-
+        foreach ($this->objects['staticFiles'] as $kind => $files) {
+            foreach ($files as $name => $src) {
+                $dir = APPLICATION_PATH . '/../static/' . $kind;
+                if (!file_exists($dir)) {
+                    $res = mkdir($dir,0777, true);
+                }
+                $dest = $dir . '/' . $name;
+                $src = APPLICATION_PATH .'/../'. $src;
+                copy($src, $dest);
+            }
+        }
     }
+
+    public static function copyFileContent(Zend_Tool_Project_Context_Filesystem_File $resource)
+    {
+        $x = __DIR__;
+
+        $path = realpath(__DIR__ . '/templates/project') . '/';
+
+        if ($resource->getResource()->getAttribute('sourceName')) {
+            $template = $resource->getResource()->getAttribute('sourceName');
+        } else {
+            $template = $resource->getResource()->getAttribute('filesystemName');
+        }
+
+        if (Dfi_File::isReadable($path . $template)) {
+            return file_get_contents($path . $template);
+        } else {
+            throw new ZFscaffold_ZfTool_Exception('template defined but not found: ' . $template, self::MSG_ERROR);
+        }
+    }
+
 
     /**
      * Convert a table name to a form class name.
@@ -399,26 +426,34 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
     private function _initPaths($path)
     {
-        defined('APPLICATION_PATH') || define('APPLICATION_PATH', realpath($path));
+        defined('APPLICATION_PATH') || define('APPLICATION_PATH', $path);
         defined('APPLICATION_ENV') || define('APPLICATION_ENV', 'production');
 
         $path = constant('APPLICATION_PATH');
         $env = constant('APPLICATION_ENV');
 
-        $this->_printMessage('path: ' . $path);
-        $this->_printMessage('env: ' . $env);
+        $this->_printMessage('path: ' . $path, self::MSG_SPECIAL, array('color' => array('hiCyan')));
+        $this->_printMessage('env: ' . $env, self::MSG_SPECIAL, array('color' => array('hiCyan')));
 
     }
 
     private function _initIncludePaths($path)
     {
-        $parts1 = explode(PATH_SEPARATOR, $path);
-        $parts2 = explode(PATH_SEPARATOR, get_include_path());
 
-        $parts = array_merge($parts1, $parts2);
-        $parts = array_unique($parts);
+        if (false != strpos($path, PATH_SEPARATOR)) {
+            $parts1 = explode(PATH_SEPARATOR, $path);
+            $parts2 = explode(PATH_SEPARATOR, get_include_path());
+
+            $parts = array_merge($parts1, $parts2);
+
+        } else {
+            $parts = array();
+        }
 
         $parts[] = APPLICATION_PATH;
+        $parts[] = realpath(APPLICATION_PATH . '/../vendor/zendframework/zendframework1/library');
+
+        $parts = array_unique($parts);
 
         sort($parts);
 
@@ -446,7 +481,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
                 "Propel config $propelConfig not exist"
             );
         };
-        require_once APPLICATION_PATH . '/../library/propel/Propel.php';
+        //require_once $this->cwd. . '/../library/propel/Propel.php';
         Propel::init($propelConfig);
         $propelConf = Propel::getConfiguration();
 
@@ -475,7 +510,10 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
 
         if (!file_exists($configFilePath)) {
-            throw new ZFscaffold_ZfTool_Exception('Application config file not found: ' . $configFilePath);
+
+
+            $projectProvider = $this->_registry->getProviderRepository()->getProvider('zfproject');
+            $projectProvider->generate();
         }
 
         $this->appConfigFile = $configFilePath;
@@ -484,13 +522,13 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         $this->appConfig = new Zend_Config_Ini($configFilePath);
 
 
-        $this->_printMessage(var_export($this->appConfig->toArray(), true));
+        //$this->_printMessage(var_export($this->appConfig->toArray(), true));
     }
 
     /**
      * @return Zend_Config
      */
-    public function getAppConfig()
+    private function getAppConfig()
     {
         if (!$this->appConfig instanceof Zend_Config_Ini) {
             $this->_readAppConfig();
@@ -646,6 +684,13 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
 
     ///////
+    /**
+     * @return boolean
+     */
+    private function getForceOverWrite()
+    {
+        return $this->forceOverWrite;
+    }
 
 
     private function _collectData()
@@ -657,7 +702,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         $outputs = array();
 
         $templateQuestion[] = PHP_EOL;
-        $templates = array_map('basename', glob($this->scaffoldDir . '/templates/*', GLOB_ONLYDIR));
+        $templates = array_map('basename', glob($this->scaffoldDir . '/templates/scaffold/*', GLOB_ONLYDIR));
         $templateQuestion[] = "Enter output template:";
         foreach ($templates as $templateName) {
             $templateQuestion[] = array($templateName, self::MSG_SPECIAL, array('indention' => 4));
@@ -676,7 +721,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
         // parse the config file
         $xdoc = new DOMDocument();
-        $xdoc->load($this->scaffoldDir . '/templates/' . $this->_outputTemplate . '/output-config.xml');
+        $xdoc->load($this->scaffoldDir . '/templates/scaffold/' . $this->_outputTemplate . '/output-config.xml');
         foreach ($xdoc->getElementsByTagName('outputGroup') as $outputGroupElement) {
             /* @var $outputGroupElement DOMElement */
 
@@ -696,7 +741,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
                 $output = array(
                     'key' => strtolower(chr($asciiChar++)),
                     'templateName' => $outputElement->getAttribute('templateName'),
-                    'templateFile' => $zodekenDir . '/templates/' . $this->_outputTemplate . '/' . $outputElement->getAttribute('templateName'),
+                    'templateFile' => $zodekenDir . '/templates/scaffold/' . $this->_outputTemplate . '/' . $outputElement->getAttribute('templateName'),
                     'canOverride' => (int)$outputElement->getAttribute('canOverride'),
                     'outputPath' => $outputElement->getAttribute('outputPath'),
                     'acceptMapTable' => $outputElement->getAttribute('acceptMapTable'),
@@ -711,24 +756,24 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
                 $question[] = array($output['key'] . '. ' . $output['templateName'], self::MSG_SPECIAL, array('indention' => 8));
             }
         }
-        $css = array();
-        /** @var $cssFiles DOMElement */
-        foreach ($xdoc->getElementsByTagName('css') as $cssFiles) {
-            /** @var $cssFile DOMElement */
-            foreach ($cssFiles->getElementsByTagName('file') as $cssFile) {
-                $css[] = $cssFile->getAttribute('path');
+        $files = array();
+        /** @var $kind DOMElement */
+        foreach ($xdoc->getElementsByTagName('staticFiles') as $kind) {
+            /** @var $node DOMText */
+            foreach ($kind->childNodes as $node) {
+                if ($node->nodeType != 1) {
+                    continue;
+                }
+                $kind = $node->tagName;
+                $files[$kind] = array();
+                /** @var $cssFile DOMElement */
+                foreach ($node->getElementsByTagName('file') as $file) {
+                    $files[$kind][$file->getAttribute('path')] = $file->getAttribute('src');;
+                }
             }
         }
-        $this->objects['cssFiles'] = $css;
-        $js = array();
-        /** @var $jsFiles DOMElement */
-        foreach ($xdoc->getElementsByTagName('js') as $jsFiles) {
-            /** @var $jsFile DOMElement */
-            foreach ($jsFiles->getElementsByTagName('file') as $jsFile) {
-                $js[] = $jsFile->getAttribute('path');
-            }
-        }
-        $this->objects['jsFiles'] = $js;
+        $this->objects['staticFiles'] = $files;
+
 
         $question[] = PHP_EOL;
         $question[] = array('Your choice:', self::MSG_NORMAL);

@@ -38,9 +38,12 @@ class ZFscaffold_ZfTool_Renderer_Abstract
      */
     protected $provider;
 
-    public function __construct(ZFscaffold_ZfTool_ScaffoldProvider $provider)
+    protected $forceOverWrite;
+
+    public function __construct(ZFscaffold_ZfTool_ScaffoldProvider $provider, $forceOverWrite = false)
     {
         $this->provider = $provider;
+        $this->forceOverWrite = $forceOverWrite;
     }
 
     /**
@@ -121,7 +124,7 @@ class ZFscaffold_ZfTool_Renderer_Abstract
         if (!$this->isRendered) {
             $this->render();
         }
-        return $this->provider->_createFile($this->getDestination(), $this->renderedCode, $this->provider->getForceOverWrite());
+        return $this->provider->_createFile($this->getDestination(), $this->renderedCode, $this->forceOverWrite);
 
 
     }

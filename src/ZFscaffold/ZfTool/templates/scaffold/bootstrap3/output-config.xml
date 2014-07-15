@@ -10,6 +10,18 @@
                 outputPath="{MODULE_BASE_DIR}/controllers/IndexController.php"/>
         <output templateName="ViewDefaultIndex.php" canOverride="0" acceptMapTable="0" once="1"
                 outputPath="{MODULE_BASE_DIR}/views/scripts/index/index.phtml"/>
+
+        <output templateName="ViewLayout.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{APPLICATION_DIR}/layouts/scripts/{moduleName}-layout.phtml"/>
+
+        <output templateName="ViewPartialHeader.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{APPLICATION_DIR}/layouts/partials/scripts/header.phtml"/>
+        <output templateName="ViewPartialMessages.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{APPLICATION_DIR}/layouts/partials/scripts/messages.phtml"/>
+        <output templateName="ViewPartialNavbar.php" canOverride="0" acceptMapTable="0" once="1"
+                outputPath="{APPLICATION_DIR}/layouts/partials/scripts/navbar.phtml"/>
+
+
     </outputGroup>
 
     <outputGroup name="auth" setVariable="renderAuth">
@@ -38,16 +50,23 @@
         <output templateName="Form.php" canOverride="0" acceptMapTable="0"
                 outputPath="{MODULE_BASE_DIR}/forms/Edit{TABLE_FORM_NAME}.php"/>
     </outputGroup>
-
-    <js>
-        <file path="jquery.js"/>
-        <file path="bootstrap.js"/>
-        <file path="scaffold.css"/>
-    </js>
-    <css>
-        <file path="bootstrap.css"/>
-        <file path="bootstrap-theme.css"/>
-        <file path="scaffold.css"/>
-    </css>
+    <staticFiles>
+        <js>
+            <file path="jquery.js" src="vendor/frameworks/jquery/jquery.js"/>
+            <file path="bootstrap.js" src="vendor/twitter/bootstrap/dist/js/bootstrap.js"/>
+            <file path="scaffold.js" src="vendor/dafik/zf-scaffold/src/ZFscaffold/ZfTool/templates/scaffold/bootstrap3/saffold.js"/>
+        </js>
+        <css>
+            <file path="bootstrap.css" src="vendor/twitter/bootstrap/dist/css/bootstrap.css"/>
+            <file path="bootstrap-theme.css" src="vendor/twitter/bootstrap/dist/css/bootstrap-theme.css"/>
+            <file path="scaffold.css" src="vendor/dafik/zf-scaffold/src/ZFscaffold/ZfTool/templates/scaffold/bootstrap3/saffold.css"/>
+        </css>
+        <fonts>
+            <file path="glyphicons-halflings-regular.eot" src="vendor/twitter/bootstrap/dist/fonts/glyphicons-halflings-regular.eot"/>
+            <file path="glyphicons-halflings-regular.svg" src="vendor/twitter/bootstrap/dist/fonts/glyphicons-halflings-regular.svg"/>
+            <file path="glyphicons-halflings-regular.ttf" src="vendor/twitter/bootstrap/dist/fonts/glyphicons-halflings-regular.ttf"/>
+            <file path="glyphicons-halflings-regular.woff" src="vendor/twitter/bootstrap/dist/fonts/glyphicons-halflings-regular.woff"/>
+        </fonts>
+    </staticFiles>
 
 </scaffold>

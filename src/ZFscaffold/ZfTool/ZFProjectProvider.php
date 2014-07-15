@@ -54,6 +54,10 @@ class ZFscaffold_ZfTool_ZFProjectProvider extends Zend_Tool_Framework_Provider_A
 
         $projectProvider->create(null, 'default', $file);
 
+        $file = substr(__DIR__, 0, strpos(__DIR__, 'vendor')) . '/logs';
+
+        chmod($file, 0777);
+
     }
 
     public static function bootstrapFile()
