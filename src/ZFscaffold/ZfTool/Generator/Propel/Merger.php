@@ -63,6 +63,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
 
                 if ($this->isAllowedTable($table)) {
                     $this->checkPhpName($table);
+                    $this->publicSchemaFix($table, $schema);
                     $this->checkInherit($table);
                     $this->checkView($table, $schema);
                     $this->checkTree($table, $schema);
@@ -105,27 +106,105 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
 
     private function checkPhpName(DOMElement $table)
     {
+
+        $phpReserved = array('__halt_compiler', 'abstract', 'and', 'array', 'as', 'break', 'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue',
+            'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 'eval',
+            'exit', 'extends', 'final', 'finally', 'for', 'foreach', 'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof',
+            'insteadof', 'interface', 'isset', 'list', 'namespace', 'new', 'or', 'print', 'private', 'protected', 'public', 'require', 'require_once', 'return',
+            'static', 'switch', 'throw', 'trait', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield');
+
+
         //echo '::checking names' . "\n";
         //$tableName = $table->getAttribute('name');
         $phpName = $table->getAttribute('phpName');
-        $table->setAttribute('phpName', $this->singularize($phpName));
+
+        $schema = $table->getAttribute('schema');
+
+        if (false !== array_search(strtolower($phpName), $phpReserved)) {
+            $phpName += '_';
+        }
+
+
+        $name = $this->singularize($phpName);
+
+
+        if ($schema && $schema != 'public') {
+            $schema = $this->singularize($schema);
+
+            if (!preg_match('/^' . $schema . '/i', $name)) {
+                $name = ucfirst($schema) . $name;
+            }
+        }
+        echo $phpName . '->' . $name . "\n";
+
+        $table->setAttribute('phpName', $name);
+
+        $columns = $table->getElementsByTagName('column');
+        foreach ($columns as $column) {
+            $phpName = $column->getAttribute('phpName');
+            if (false !== array_search(strtolower($phpName), $phpReserved)) {
+                $phpName .= '_';
+                //$column->setAttribute('phpName', $phpName);
+                $column->setAttribute('peerName', $phpName);
+            }
+            if (!preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/', $phpName,$matches)) {
+                $phpName = '_' . $phpName;
+                $column->setAttribute('phpName', $phpName);
+                $column->setAttribute('peerName', $phpName);
+            }
+
+        }
+    }
+
+    private function publicSchemaFix(DOMElement $table, DOMDocument $schema)
+    {
+        $tableName = $table->getAttribute('name');
+
+        /** @var $vendorList DOMNodeList */
+        if ($vendorList = $table->getElementsByTagName('vendor')) {
+
+            $vendor = $vendorList->item(0);
+            if ($vendor) {
+                $type = $vendor->getAttribute('type');
+
+                if ($type == 'pgsql') {
+
+                    $path = sprintf("//table[@name='%s']/foreign-key", $tableName);
+
+                    $schemaT = $table->getAttribute('schema');
+                    if (!$schemaT) {
+                        $table->setAttribute('schema', "public");
+                    }
+                    $xpath = new DOMXPath($schema);
+                    $result = $xpath->evaluate($path);
+                    foreach ($result as $node) {
+                        $schema = $node->getAttribute('foreignSchema');
+                        if (!$schema) {
+                            $node->setAttribute('foreignSchema', "public");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private function checkInherit(DOMElement $table)
     {
         $model = $this->config->model;
 
-        $baseClass = $model->baseClass;
-        $basePeer = $model->basePeer;
+        if ($model) {
+            $baseClass = $model->baseClass;
+            $basePeer = $model->basePeer;
 
-        //echo '::checking inheritance' . "\n";
-        if ($baseClass) {
-            echo "\t" . ' found:' . $baseClass . "\n";
-            $table->setAttribute('baseClass', $baseClass);
-        }
-        if ($basePeer) {
-            $table->setAttribute('basePeer', $basePeer);
-            echo "\t" . ' found:' . $basePeer . "\n";
+            //echo '::checking inheritance' . "\n";
+            if ($baseClass) {
+                echo "\t" . ' found:' . $baseClass . "\n";
+                $table->setAttribute('baseClass', $baseClass);
+            }
+            if ($basePeer) {
+                $table->setAttribute('basePeer', $basePeer);
+                echo "\t" . ' found:' . $basePeer . "\n";
+            }
         }
     }
 
@@ -316,7 +395,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         if (defined('PROJECT_IN_ENGLISH') && PROJECT_IN_ENGLISH == true) {
             // require_once('Inflector.php');
             $out = ZFscaffold_ZfTool_Generator_Propel_Inflector::singularize($name);
-            echo $name . '->' . $out . "\n";
+            //echo $name . '->' . $out . "\n";
             return $out;
         }
         return $name;

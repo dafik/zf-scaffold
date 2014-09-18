@@ -63,7 +63,9 @@ class ZFscaffold_ZfTool_Generator_Propel_Inflector
         'ResultType2dataBase' => 'ResultType2dataBases',
         'StatusType2dataBase' => 'StatusType2dataBases',
         'Userstatus' => 'Userstatus',
-        'Process' => 'Process'
+        'Process' => 'Process',
+        'Sys' => 'Sys',
+        'sys' => 'sys'
 
     );
 

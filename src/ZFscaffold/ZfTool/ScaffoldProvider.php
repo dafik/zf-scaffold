@@ -91,6 +91,13 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
     protected $_authActivityField = 0;
 
 
+    public function setRegistry(Zend_Tool_Framework_Registry_Interface $registry)
+    {
+        $response = $registry->getResponse();
+        ZFscaffold_ZfTool_Helpers_Messages::setResponse($response);
+        return parent::setRegistry($registry);
+    }
+
     /**
      * The public method that would be exposed into ZF tool
      */
@@ -107,7 +114,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
             $this->_prepareConfig($force);
             $this->_generate($force);
 
-        } catch (ZFscaffold_Exception $e) {
+        } catch (Exception $e) {
 
             //$this->_printMessage($e->getMessage(), self::MSG_ERROR);
             throw $e;
@@ -242,10 +249,13 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
             foreach ($files as $name => $src) {
                 $dir = APPLICATION_PATH . '/../static/' . $kind;
                 if (!file_exists($dir)) {
-                    $res = mkdir($dir,0777, true);
+                    $res = mkdir($dir, 0777, true);
+                    if(!$res){
+
+                    }
                 }
                 $dest = $dir . '/' . $name;
-                $src = APPLICATION_PATH .'/../'. $src;
+                $src = APPLICATION_PATH . '/../' . $src;
                 copy($src, $dest);
             }
         }
@@ -383,7 +393,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
                 $messages[] = 'Invalid default value: ' . $default . ' for question: ';
                 $messages[] = $question;
                 $this->_printMessage($messages, self::MSG_ERROR);
-                throw new ZFscaffold_Exception($messages[0]);
+                throw new ZFscaffold_ZfTool_Exception($messages[0]);
             }
 
         }
@@ -512,6 +522,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         if (!file_exists($configFilePath)) {
 
 
+            /** @var $projectProvider ZFscaffold_ZfTool_ZFProjectProvider */
             $projectProvider = $this->_registry->getProviderRepository()->getProvider('zfproject');
             $projectProvider->generate();
         }
@@ -523,17 +534,6 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
 
         //$this->_printMessage(var_export($this->appConfig->toArray(), true));
-    }
-
-    /**
-     * @return Zend_Config
-     */
-    private function getAppConfig()
-    {
-        if (!$this->appConfig instanceof Zend_Config_Ini) {
-            $this->_readAppConfig();
-        }
-        return $this->appConfig;
     }
 
     private function _prepareConfig($shouldUpdateConfigFile)
