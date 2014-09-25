@@ -127,6 +127,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
                 $logger = Zend_Registry::get('propelLogger');
                 $adapter = new Dfi_Log_Adapter_Propel2Zend($logger);
 
+                /** @noinspection PhpIncludeInspection */
                 require_once 'Propel.php';
 
                 Propel::setLogger($adapter);

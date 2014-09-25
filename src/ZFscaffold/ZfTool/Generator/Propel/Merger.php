@@ -14,7 +14,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
 
         error_reporting(E_ALL | E_STRICT);
         ini_set('display_errors', true);
-        define('PROJECT_IN_ENGLISH', true);
+        defined('PROJECT_IN_ENGLISH') || define('PROJECT_IN_ENGLISH', true);
         date_default_timezone_set('Europe/Warsaw');
 
 
@@ -68,9 +68,14 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
                     $this->checkView($table, $schema);
                     $this->checkTree($table, $schema);
                     $this->checkManyToMany($table, $schema);
-                    $this->checkCrossReference($table);
 
-                    $this->checkProjectSpec($table, $schema);
+                    $this->checkManyToManyEqual($table, $schema);
+
+                    $this->checkSortable($table, $schema);
+                    $this->checkSlugable($table, $schema);
+                    $this->checkHashable($table, $schema);
+
+                    $this->checkCrossReference($table);
                 } else {
                     //remove table
                     $domElemsToRemove[] = $table;
@@ -121,7 +126,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         $schema = $table->getAttribute('schema');
 
         if (false !== array_search(strtolower($phpName), $phpReserved)) {
-            $phpName += '_';
+            $phpName .= '_';
         }
 
 
@@ -147,7 +152,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
                 //$column->setAttribute('phpName', $phpName);
                 $column->setAttribute('peerName', $phpName);
             }
-            if (!preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/', $phpName,$matches)) {
+            if (!preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/', $phpName, $matches)) {
                 $phpName = '_' . $phpName;
                 $column->setAttribute('phpName', $phpName);
                 $column->setAttribute('peerName', $phpName);
@@ -401,72 +406,179 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         return $name;
     }
 
-
-    private function checkProjectSpec(DOMElement $table, DOMDocument $schema)
+    private function checkManyToManyEqual(DOMElement $table, DOMDocument $schema)
     {
-        //echo '::checking manty to many' . "\n";
-
-
-        /** @var $tableName DOMElement */
+        $config = array();
+        if ($this->config->get('many2manyEqual', false)) {
+            $config = $this->config->many2manyEqual->toArray();
+        }
         $tableName = $table->getAttribute('name');
-        if ($tableName == 'points') {
-            $path = ".//foreign-key[@foreignTable='items']";
-            $xpath = new DOMXPath($schema);
-            /** @var $fkeys DOMNodeList */
-            $fkeys = $xpath->evaluate($path, $table);
-            /** @var $fkey DOMElement */
-            $fkey = $fkeys->item(0);
-            $fkey->setAttribute('refPhpName', 'PromoPoints');
+        if (isset($config[$tableName])) {
 
-            //<foreign-key foreignTable="items" name="prices_fk" onDelete="RESTRICT" onUpdate="RESTRICT" refPhpName="PromoPrice">
+
+            //TODO checkparams
+
+            echo "\t" . ' found:' . $tableName . "\n";
+            $behavior = $schema->createElement('behavior');
+            $behavior->setAttribute('name', 'equal_nest');
+            $parameter = $schema->createElement('parameter');
+            $parameter->setAttribute('name', 'parent_table');
+            $parameter->setAttribute('value', 'users');
+
+            $behavior->appendChild($parameter);
+
+            $parameter = $schema->createElement('parameter');
+            $parameter->setAttribute('name', 'reference_column_1');
+            $parameter->setAttribute('value', 'user_id_1');
+
+            $behavior->appendChild($parameter);
+
+            $parameter = $schema->createElement('parameter');
+            $parameter->setAttribute('name', 'reference_column_2');
+            $parameter->setAttribute('value', 'user_id_2');
+
+            $behavior->appendChild($parameter);
+
+
+            $behavior->appendChild($parameter);
+            $table->appendChild($behavior);
+
+            /*<behavior name="equal_nest">
+                <parameter name="parent_table" value="user" />
+            </behavior>*/
+
         }
-        if ($tableName == 'prices') {
-            $path = ".//foreign-key[@foreignTable='items']";
-            $xpath = new DOMXPath($schema);
-            /** @var $fkeys DOMNodeList */
-            $fkeys = $xpath->evaluate($path, $table);
-            /** @var $fkey DOMElement */
-            $fkey = $fkeys->item(0);
-            $fkey->setAttribute('refPhpName', 'PromoPrice');
+    }
 
 
-            //<foreign-key foreignTable="items" name="prices_fk" onDelete="RESTRICT" onUpdate="RESTRICT" refPhpName="PromoPrice">
+    private function checkSortable(DOMElement $table, DOMDocument $schema)
+    {
+
+        $config = array();
+        if ($this->config->get('sort', false)) {
+            $config = $this->config->sort->toArray();
+        }
+        $tableName = $table->getAttribute('name');
+        if (isset($config[$tableName])) {
+
+            echo "\t" . ' found:' . $tableName . "\n";
+
+            $params = $config[$tableName];
+
+            $rankColumn = (isset($params['rank_column']) ? $params['rank_column'] : false);
+            $scopeColumn = (isset($params['scope_column']) ? $params['scope_column'] : false);
+
+            $sxe = new SimpleXMLElement('<behavior name="sortable"></behavior>');
+            $param = $sxe->addChild('parameter');
+            $param->addAttribute('name', 'rank_column');
+            $param->addAttribute('value', $rankColumn);
+            if ($scopeColumn) {
+                $param = $sxe->addChild('parameter');
+                $param->addAttribute('name', 'use_scope');
+                $param->addAttribute('value', 'true');
+
+                $param = $sxe->addChild('parameter');
+                $param->addAttribute('name', 'scope_column');
+                $param->addAttribute('value', $scopeColumn);
+
+            }
+            $node = dom_import_simplexml($sxe);
+            $behavior = $schema->importNode($node, true);
+
+            echo "\t" . ' found:' . $tableName . "\n";
+            $table->appendChild($behavior);
+
+            //$x = $table->ownerDocument->saveXML($table);
+        }
+    }
+
+    private function checkSlugable(DOMElement $table, DOMDocument $schema)
+    {
+        //TODO Finish function
+        $config = array();
+        if ($this->config->get('slug', false)) {
+            $config = $this->config->many2manyEqual->toArray();
+        }
+        $tableName = $table->getAttribute('name');
+        if (isset($config[$tableName])) {
+            $params = $config[$tableName];
+
+     /*       $slugColumn = $params['slug_column']; //"alias"
+            $slugPattern = $params['slug_pattern']; //{Name}
+            $replacePattern = $params['replace_pattern']; ///[^\w\/]+/u
+            $replacement = $params['replacement']; //-
+            $separator = $params['separator']; //-
+            $permanent = $params['permanent']; //true
+            $scopeColumn = $params['scope_column']; //*/
+
+            $sxe = new SimpleXMLElement('
+                <behavior name="sluggable">
+                    <parameter name="slug_column" value="alias" />
+                    <parameter name="slug_pattern" value="{Name}" />
+                    <!--<parameter name="replace_pattern" value="/[^\w\/]+/u" />-->
+                    <parameter name="replacement" value="-" />
+                    <parameter name="separator" value="-" />
+                    <parameter name="permanent" value="true" />
+                    <parameter name="scope_column" value="" />
+                </behavior>'
+            );
+            $node = dom_import_simplexml($sxe);
+            $behavior = $schema->importNode($node, true);
+
+            echo "\t" . ' found:' . $tableName . "\n";
+            $table->appendChild($behavior);
+
+        }
+    }
+
+    private function checkHashable(DOMElement $table, DOMDocument $schema)
+    {
+        $allow = false;
+        $disallow = false;
+        if ($this->config->get('hash', false)) {
+            $config = $this->config->hash->toArray();
+            $allow = true;
+        }
+        if ($this->config->get('notHash', false)) {
+            $config = $this->config->hash->toArray();
+            $allow = false;
         }
 
-        if ($tableName == 'items') {
-            $path = ".//column[@name='opinions']";
-            $xpath = new DOMXPath($schema);
-            /** @var $fkeys DOMNodeList */
-            $fkeys = $xpath->evaluate($path, $table);
-            /** @var $fkey DOMElement */
-            $fkey = $fkeys->item(0);
-            $fkey->setAttribute('phpName', 'OpinionsCount');
+        $tableName = $table->getAttribute('name');
 
-            //<             column name = "opinions" phpName = "OpinionsCount" type = "INTEGER" size = "10" sqlType = "int(10) unsigned" required = "false" />
-        }
-        if ($tableName == 'options') {
-            $path = ".//column[@name='default']";
-            $xpath = new DOMXPath($schema);
-            /** @var $fkeys DOMNodeList */
-            $fkeys = $xpath->evaluate($path, $table);
-            if ($fkeys->length > 0) {
-                /** @var $fkey DOMElement */
-                $fkey = $fkeys->item(0);
-                $table->removeChild($fkey);
-                // <            column name = "default" phpName = "Defaultn" type = "BOOLEAN" size = "1" required = "false" />
+        //$x = $table->ownerDocument->saveXML($table);
+
+        $xpath = new DOMXPath($schema);
+        $nodes = $xpath->query('column[@primaryKey="true"]', $table);
+
+        if ($allow) {
+            if (array_search($tableName, $config[$tableName]) === false && $nodes->length == 1) {
+                $sxe = new SimpleXMLElement('<behavior name="hashable"/>');
+                $node = dom_import_simplexml($sxe);
+                $behavior = $schema->importNode($node, true);
+
+                echo "\t" . ' found:' . $tableName . "\n";
+                $table->appendChild($behavior);
+
+            }
+        } elseif ($disallow) {
+            if (array_search($tableName, $config[$tableName]) === false && $nodes->length == 1) {
+                $sxe = new SimpleXMLElement('<behavior name="hashable"/>');
+                $node = dom_import_simplexml($sxe);
+                $behavior = $schema->importNode($node, true);
+
+                echo "\t" . ' found:' . $tableName . "\n";
+                $table->appendChild($behavior);
+            }
+        } else {
+            if ($nodes->length == 1) {
+                $sxe = new SimpleXMLElement('<behavior name="hashable"/>');
+                $node = dom_import_simplexml($sxe);
+                $behavior = $schema->importNode($node, true);
+
+                echo "\t" . ' found:' . $tableName . "\n";
+                $table->appendChild($behavior);
             }
         }
-        if ($tableName == 'plugins') {
-            //$x = $table->ownerDocument->saveXML($table);
-
-            $path = ".//foreign-key[@foreignTable='plugin_types']";
-            $xpath = new DOMXPath($schema);
-            /** @var $fkeys DOMNodeList */
-            $fkeys = $xpath->evaluate($path, $table);
-            /** @var $fkey DOMElement */
-            $fkey = $fkeys->item(0);
-            $fkey->setAttribute('phpName', 'PluginTypesRef');
-        }
-
     }
 }

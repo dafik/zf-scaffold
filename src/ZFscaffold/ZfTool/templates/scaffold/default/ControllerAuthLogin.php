@@ -27,7 +27,7 @@ class VAR_controllerNamePrefixLoginController extends VAR_extends
     {
         //$url = $this->_getParam('url');
 
-        $this->_forward('index');
+        $this->forward('index');
     }
 
     public function indexAction()

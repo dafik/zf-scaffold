@@ -250,7 +250,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
                 $dir = APPLICATION_PATH . '/../static/' . $kind;
                 if (!file_exists($dir)) {
                     $res = mkdir($dir, 0777, true);
-                    if(!$res){
+                    if (!$res) {
 
                     }
                 }
@@ -263,8 +263,6 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
     public static function copyFileContent(Zend_Tool_Project_Context_Filesystem_File $resource)
     {
-        $x = __DIR__;
-
         $path = realpath(__DIR__ . '/templates/project') . '/';
 
         if ($resource->getResource()->getAttribute('sourceName')) {
@@ -273,6 +271,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
             $template = $resource->getResource()->getAttribute('filesystemName');
         }
 
+        /** @noinspection PhpToStringImplementationInspection */
         if (Dfi_File::isReadable($path . $template)) {
             return file_get_contents($path . $template);
         } else {
@@ -759,16 +758,16 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         $files = array();
         /** @var $kind DOMElement */
         foreach ($xdoc->getElementsByTagName('staticFiles') as $kind) {
-            /** @var $node DOMText */
+            /** @var $node DOMNode */
             foreach ($kind->childNodes as $node) {
                 if ($node->nodeType != 1) {
                     continue;
                 }
-                $kind = $node->tagName;
-                $files[$kind] = array();
+                $kindName = $node->tagName;
+                $files[$kindName] = array();
                 /** @var $cssFile DOMElement */
                 foreach ($node->getElementsByTagName('file') as $file) {
-                    $files[$kind][$file->getAttribute('path')] = $file->getAttribute('src');;
+                    $files[$kindName][$file->getAttribute('path')] = $file->getAttribute('src');;
                 }
             }
         }

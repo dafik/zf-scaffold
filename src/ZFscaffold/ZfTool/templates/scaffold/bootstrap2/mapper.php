@@ -35,4 +35,4 @@ class $tableDefinition[mapperClassName]
 }
 
 CODE;
-?>
+

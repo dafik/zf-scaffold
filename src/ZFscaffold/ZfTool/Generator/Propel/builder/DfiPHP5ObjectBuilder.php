@@ -1,8 +1,5 @@
 <?php
 
-
-require_once 'builder/om/PHP5ObjectBuilder.php';
-
 class DfiPHP5ObjectBuilder extends PHP5ObjectBuilder
 {
     /**

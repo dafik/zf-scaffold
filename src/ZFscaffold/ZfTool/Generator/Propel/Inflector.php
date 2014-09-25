@@ -119,4 +119,3 @@ class ZFscaffold_ZfTool_Generator_Propel_Inflector
     }
 }
 
-?>

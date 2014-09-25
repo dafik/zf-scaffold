@@ -72,7 +72,7 @@ class EqualNestParentBehaviorObjectBuilderModifier
         return $script;
     }
 
-    public function postSave($builder)
+    public function postSave()
     {
         return $this->behavior->renderTemplate('postSave', array(), '/templates/parent/');
     }

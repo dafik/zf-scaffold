@@ -17,4 +17,4 @@ class $tableDefinition[rowsetClassName] extends $tableDefinition[rowsetClassName
 }
 
 CODE;
-?>
+

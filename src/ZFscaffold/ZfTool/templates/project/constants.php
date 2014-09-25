@@ -14,12 +14,12 @@ define('_PROPEL_LOG_FILE', _LOG_PATH . 'propel.log');
 define('_AD_LOG_FILE', _LOG_PATH . 'ad.log');
 
 // --------- static
-define('_CSS', Dfi_App_Config::get('http.static') . 'css/');
-define('_IMG', Dfi_App_Config::get('http.static') . 'img/');
+define('_CSS', Dfi_App_Config::getString('http.static') . 'css/');
+define('_IMG', Dfi_App_Config::getString('http.static') . 'img/');
 define('_IMG_LAYOUT', _IMG . 'layout/');
-define('_SWF', Dfi_App_Config::get('http.static') . 'swf/');
-define('_XML', Dfi_App_Config::get('http.static') . 'xml/');
-define('_JS', Dfi_App_Config::get('http.static') . 'js/');
+define('_SWF', Dfi_App_Config::getString('http.static') . 'swf/');
+define('_XML', Dfi_App_Config::getString('http.static') . 'xml/');
+define('_JS', Dfi_App_Config::getString('http.static') . 'js/');
 define('_IMG_TMP', _STATIC_PATH . 'tmp/');
 
 define('_CKEDITOR', _JS . 'lib/ckeditor/');

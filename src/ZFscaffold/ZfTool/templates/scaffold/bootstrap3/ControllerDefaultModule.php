@@ -63,7 +63,7 @@ abstract class VAR_extends extends application_BaseController
     }
 
 
-    protected function initLayout()
+    public function initLayout()
     {
         parent::init();
 
@@ -123,7 +123,7 @@ abstract class VAR_extends extends application_BaseController
     }
 
 
-    protected function isUserAny()
+    public function isUserAny()
     {
         if (!$this->user && Zend_Auth::getInstance()->hasIdentity()) {
             $this->user = Zend_Auth::getInstance()->getIdentity();

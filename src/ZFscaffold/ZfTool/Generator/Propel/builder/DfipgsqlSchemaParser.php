@@ -1,21 +1,7 @@
 <?php
-
-/**
- * This file is part of the Propel package.
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @license    MIT License
- */
-
-require_once 'reverse/BaseSchemaParser.php';
-
 /**
  * Postgresql database schema parser.
  *
- * @author     Hans Lellelid <hans@xmpl.org>
- * @version    $Revision$
- * @package    propel.generator.reverse.pgsql
  */
 class DfiPgsqlSchemaParser extends BaseSchemaParser
 {
@@ -173,11 +159,11 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
      *
      * @param Table $table The Table model class to add columns to.
      * @param int $oid The table OID
-     * @param string $version The database version.
-     *
      * @throws EngineException
+     * @internal param string $version The database version.
+     *
      */
-    protected function addColumns(Table $table, $oid, $version)
+    protected function addColumns(Table $table, $oid)
     {
         // Get the columns, types, etc.
         // Based on code from pgAdmin3 (http://www.pgadmin.org/)
@@ -228,7 +214,7 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
                 $arrDomain = $this->processDomain($row['typname']);
                 $type = $arrDomain['type'];
                 $size = $arrDomain['length'];
-                $precision = $size;
+                //$precision = $size;
                 $scale = $arrDomain['scale'];
                 $boolHasDefault = (strlen(trim($row['atthasdef'])) > 0) ? $row['atthasdef'] : $arrDomain['hasdefault'];
                 $default = (strlen(trim($row['adsrc'])) > 0) ? $row['adsrc'] : $arrDomain['default'];
@@ -238,7 +224,7 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
                 $type = $row['typname'];
                 $arrLengthPrecision = $this->processLengthScale($row['atttypmod'], $type);
                 $size = $arrLengthPrecision['length'];
-                $precision = $size;
+                //$precision = $size;
                 $scale = $arrLengthPrecision['scale'];
                 $boolHasDefault = $row['atthasdef'];
                 $default = $row['adsrc'];
@@ -369,7 +355,7 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
     /**
      * Load foreign keys for this table.
      */
-    protected function addForeignKeys(Table $table, $oid, $version)
+    protected function addForeignKeys(Table $table, $oid)
     {
         $database = $table->getDatabase();
         $stmt = $this->dbh->prepare("SELECT
@@ -478,7 +464,7 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
     /**
      * Load indexes for this table
      */
-    protected function addIndexes(Table $table, $oid, $version)
+    protected function addIndexes(Table $table, $oid)
     {
         $stmt = $this->dbh->prepare("SELECT
                                         DISTINCT ON(cls.relname)
@@ -539,7 +525,7 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
     /**
      * Loads the primary key for this table.
      */
-    protected function addPrimaryKey(Table $table, $oid, $version)
+    protected function addPrimaryKey(Table $table, $oid)
     {
 
         $stmt = $this->dbh->prepare("SELECT
@@ -577,8 +563,8 @@ class DfiPgsqlSchemaParser extends BaseSchemaParser
     /**
      * Adds the sequences for this database.
      *
+     * @param Database $database
      * @return void
-     * @throws SQLException
      */
     protected function addSequences(Database $database)
     {

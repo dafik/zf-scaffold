@@ -3,6 +3,8 @@
 class HashableBehavior extends Behavior
 {
 
+    private $builder;
+
     public function objectMethods($builder)
     {
 

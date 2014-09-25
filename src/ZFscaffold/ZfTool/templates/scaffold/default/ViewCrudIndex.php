@@ -33,7 +33,7 @@
 <br/>
 <form method="get" action="<?= $this->url(array('action' => 'index'), null, true); ?>">
     <div>
-        Search for: <input type="text" name="_kw" value="<?= htmlspecialchars($this->param_kw); ?>"/> in
+        <label for="_kw">Search for:</label><input id="_kw" type="text" name="_kw" value="<?= htmlspecialchars($this->param_kw); ?>"/> in
         <?= $this->formSelect('_sm', $this->param_sm, array(), $VAR_searchableFields); ?>
         <input type="submit" value="Go"/>
     </div>

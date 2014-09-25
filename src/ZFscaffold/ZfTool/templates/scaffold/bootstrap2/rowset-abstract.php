@@ -26,4 +26,4 @@ abstract class $tableDefinition[rowsetClassNameAbstract] extends Zend_Db_Table_R
 }
 
 CODE;
-?>
+

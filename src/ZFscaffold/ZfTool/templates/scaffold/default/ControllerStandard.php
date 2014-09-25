@@ -13,7 +13,7 @@ class VAR_controllerName extends VAR_extends
     public function indexAction()
     {
         $this->getFrontController()->getRequest()->setParams($_GET);
-        $params = $this->_getAllParams();
+        $params = $this->getAllParams();
         unset($params['module'], $params['controller'], $params['action'], $params['page'], $params['_sf'], $params['_so']);
 
         $sortField = $this->_getParam('_sf', '');
@@ -45,7 +45,7 @@ class VAR_controllerName extends VAR_extends
             'pager' => $pager
         ));
 
-        foreach ($this->_getAllParams() as $paramName => $paramValue) {
+        foreach ($this->getAllParams() as $paramName => $paramValue) {
             // prepend 'param' to avoid error of setting private/protected members
             $this->view->assign('param' . $paramName, $paramValue);
         }
@@ -59,6 +59,7 @@ class VAR_controllerName extends VAR_extends
             if ($form->isValid($this->_request->getPost())) {
                 $values = $form->getValues();
 
+                /** @var $model VAR_tablePhpName */
                 $model = new VAR_tablePhpName();
                 Dfi_Propel_Adapter_ModelValues::setByArray($model, $values);
                 $model->save();

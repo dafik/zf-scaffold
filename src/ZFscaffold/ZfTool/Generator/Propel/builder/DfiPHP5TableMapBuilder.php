@@ -1,12 +1,8 @@
 <?php
 
-require_once 'builder/om/PHP5TableMapBuilder.php';
-
 /**
  * Generates the PHP5 table map class for user object model (OM).
  *
- * @author     Hans Lellelid <hans@xmpl.org>
- * @package    propel.generator.builder.om
  */
 class DfiPHP5TableMapBuilder extends PHP5TableMapBuilder
 {

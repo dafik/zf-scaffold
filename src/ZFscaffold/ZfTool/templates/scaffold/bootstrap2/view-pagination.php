@@ -37,4 +37,3 @@ return <<<CODE
 </div>
 <?php endif; ?>
 CODE;
-?>

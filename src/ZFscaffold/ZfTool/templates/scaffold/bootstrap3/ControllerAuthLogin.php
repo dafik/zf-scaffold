@@ -27,7 +27,7 @@ class VAR_controllerNamePrefixLoginController extends VAR_extends
     {
         //$url = $this->_getParam('url');
 
-        $this->_forward('index');
+        $this->forward('index');
     }
 
     public function indexAction()
@@ -47,7 +47,7 @@ class VAR_controllerNamePrefixLoginController extends VAR_extends
         } else {
             $values = $form->getValues();
 
-            $adapter = new Dfi_Auth_Adapter_Db($values['login'], Dfi_App_Config::get('cake.salt') . $values['password'], array(
+            $adapter = new Dfi_Auth_Adapter_Db($values['login'], Dfi_App_Config::getString('cake.salt') . $values['password'], array(
                     'table' => 'VAR_authTable',
                     'loginField' => 'VAR_authLoginField',
                     'passwordField' => 'VAR_authPasswordField',

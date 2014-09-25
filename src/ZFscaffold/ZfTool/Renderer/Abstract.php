@@ -196,7 +196,7 @@ class ZFscaffold_ZfTool_Renderer_Abstract
         return $prefix . $line;
     }
 
-    protected function formatLineArray($lines, $tabSize = 2, $skipFirst = true)
+    protected function formatLineArray($lines, $tabSize = 2)
     {
         $tmp = array();
         foreach ($lines as $key => $line) {

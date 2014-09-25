@@ -1,21 +1,7 @@
 <?php
-
-/**
- * This file is part of the Propel package.
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @license    MIT License
- */
-
-require_once 'reverse/BaseSchemaParser.php';
-
 /**
  * Mysql database schema parser.
  *
- * @author     Hans Lellelid <hans@xmpl.org>
- * @version    $Revision$
- * @package    propel.generator.reverse.mysql
  */
 class DfiMysqlSchemaParser extends BaseSchemaParser
 {
@@ -168,6 +154,7 @@ class DfiMysqlSchemaParser extends BaseSchemaParser
      * @param array $row An associative array with the following keys:
      *                       Field, Type, Null, Key, Default, Extra.
      *
+     * @param Table $table
      * @return Column
      */
     public function getColumnFromRow($row, Table $table)
@@ -194,7 +181,7 @@ class DfiMysqlSchemaParser extends BaseSchemaParser
             if ($matches[2]) {
                 if (($cpos = strpos($matches[2], ',')) !== false) {
                     $size = (int)substr($matches[2], 0, $cpos);
-                    $precision = $size;
+                    //$precision = $size;
                     $scale = (int)substr($matches[2], $cpos + 1);
                 } else {
                     $size = (int)$matches[2];

@@ -32,7 +32,6 @@ class EqualNestBehavior extends Behavior
 
     public function modifyTable()
     {
-        $table = $this->getTable();
         $parentTable = $this->getParentTable();
 
         if (count($parentTable->getPrimaryKey()) > 1) {
@@ -41,7 +40,7 @@ class EqualNestBehavior extends Behavior
 
         $parentTablePrimaryKey = $parentTable->getPrimaryKey();
 
-        if (!$this->getTable()->containsColumn($this->getReferenceColumn1Name())) {
+        if (!$this->getTable()->hasColumn($this->getReferenceColumn1Name())) {
             $this->getTable()->addColumn(array(
                 'name'          => $this->getReferenceColumn1Name(),
                 'primaryKey'    => 'true',
@@ -57,7 +56,7 @@ class EqualNestBehavior extends Behavior
             $this->getTable()->addForeignKey($fk);
         }
 
-        if (!$this->getTable()->containsColumn($this->getReferenceColumn2Name())) {
+        if (!$this->getTable()->hasColumn($this->getReferenceColumn2Name())) {
             $this->getTable()->addColumn(array(
                 'name'          => $this->getReferenceColumn2Name(),
                 'primaryKey'    => 'true',
@@ -95,7 +94,7 @@ class EqualNestBehavior extends Behavior
         return $script;
     }
 
-    public function addPeerBuildEqualNestRelation($builder)
+    public function addPeerBuildEqualNestRelation()
     {
         return $this->renderTemplate('addPeerBuildEqualNestRelation', array(
             'refClassName'    => $this->parentBehavior->getTable()->getPhpName(),
@@ -105,7 +104,7 @@ class EqualNestBehavior extends Behavior
         ));
     }
 
-    public function addPeerRemoveEqualNestRelation($builder)
+    public function addPeerRemoveEqualNestRelation()
     {
         return $this->renderTemplate('addPeerRemoveEqualNestRelation', array(
             'refClassName'    => $this->parentBehavior->getTable()->getPhpName(),
@@ -115,8 +114,8 @@ class EqualNestBehavior extends Behavior
 
     public function addPeerCheckForEqualNestRelation($builder)
     {
-        $fullNameRefColumn1 = $this->table->getPhpName(). '.' .$this->getReferenceColumn1()->getPhpName();
-        $fullNameRefColumn2 = $this->table->getPhpName(). '.' .$this->getReferenceColumn2()->getPhpName();
+        //$fullNameRefColumn1 = $this->table->getPhpName(). '.' .$this->getReferenceColumn1()->getPhpName();
+        //$fullNameRefColumn2 = $this->table->getPhpName(). '.' .$this->getReferenceColumn2()->getPhpName();
 
         return $this->renderTemplate('addPeerCheckForEqualNestRelation', array(
             'refClassName'        => $this->parentBehavior->getTable()->getPhpName(),

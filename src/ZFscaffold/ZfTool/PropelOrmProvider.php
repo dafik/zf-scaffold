@@ -6,7 +6,6 @@
 class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_Abstract
 {
     private $config;
-    private $cwd;
     private $colorsSupport;
 
     const CONFIG_FILE_NAME = 'generator.ini';
@@ -166,6 +165,9 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
         $builderPath = realpath(__DIR__ . '/Generator/Propel/builder');
         $builderPathParts = explode(DIRECTORY_SEPARATOR, $builderPath);
 
+        $behaviorsPath = realpath(__DIR__ . '/Generator/Propel/behavior');
+        $behaviorsPathParts = explode(DIRECTORY_SEPARATOR, $behaviorsPath);
+
         $options = array();
         $options[] = 'propel.project=' . $project;
         $options[] = 'propel.targetPackage=' . $targetPackage;
@@ -182,6 +184,9 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
         }
         $options[] = 'propel.builder.tablemap.class = ' . implode('.', $builderPathParts) . '.DfiPHP5TableMapBuilder';
         $options[] = 'propel.builder.pluralizer.class = builder.util.StandardEnglishPluralizer';
+
+        $options[] = 'propel.behavior.equal_nest.class = ' . implode('.', $behaviorsPathParts) . '.equal_nest.EqualNestBehavior';
+        $options[] = 'propel.behavior.hashable.class = ' . implode('.', $behaviorsPathParts) . '.hashable.HashableBehavior';
 
 
         $configPath = $schemaDir . '/' . $project . '/build.properties';
@@ -430,7 +435,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
             '-f',
             $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
             '-Dusing.propel-gen=true',
-            '-Dproject.dir=' . $currentWorkingDirectory . '/vendor/dafik/generator/schema/' . $config,
+            '-Dproject.dir=' . $schemaDir . '/' . $config,
             '-Dbuild.properties=build.properties',
             //'-verbose'
 
@@ -445,6 +450,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
 
         putenv("PHING_HOME=" . realpath($currentWorkingDirectory . '/vendor/phing/phing'));
         $phingFile = $currentWorkingDirectory . '/vendor/phing/phing/bin/phing.php';
+        /** @noinspection PhpIncludeInspection */
         $result = include $phingFile;
 
         return $result;
@@ -509,6 +515,7 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
     private function _postOrmUpdate($ormDir, $config, $i)
     {
         $postUpdateFile = $ormDir . '/' . $config . '/' . 'post-update.php';
+        /** @noinspection PhpUnusedLocalVariableInspection */
         $package = Dfi_App_Config::getString('generator.targetPackage.' . $i);
         if (file_exists($postUpdateFile)) {
             include $postUpdateFile;
@@ -612,8 +619,8 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
             ZFscaffold_ZfTool_Helpers_Messages::printOut('error writing app config :' . $configFilePath, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
         }
 
-        if (count($configs) > 0) {
-
+        foreach ($configs as $config) {
+            $sourceDir = $schemaDir . '/' . $config . '/build';
             $command = 'rm -rf ' . $sourceDir;
             $out = array();
             $val = 0;
