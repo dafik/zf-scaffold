@@ -14,9 +14,9 @@
                 <adapter>mysql</adapter>
                 <connection>
                     <!--<classname>PDO</classname>-->
-                    <dsn>mysql:host=dev;dbname=cc</dsn>
-                    <user>dafi</user>
-                    <password>alamakota</password>
+                    <dsn>mysql:host=*****;dbname=*****</dsn>
+                    <user>*****</user>
+                    <password>*****</password>
                     <settings>
                         <setting id="charset">utf8</setting>
                     </settings>
