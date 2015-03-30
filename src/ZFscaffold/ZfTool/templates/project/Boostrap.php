@@ -25,6 +25,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $constPath = APPLICATION_PATH . '/configs/constants.php';
 
         if (Zend_Loader::isReadable($constPath)) {
+            /** @noinspection PhpIncludeInspection */
             include_once $constPath;
         } else {
             throw new Exception('app config read failed');

@@ -112,4 +112,4 @@ class {$this->_controllerNamePrefix}$tableDefinition[baseClassName]Controller ex
     }
 }
 CODE;
-?>
+

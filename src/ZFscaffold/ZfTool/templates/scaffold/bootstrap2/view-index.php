@@ -176,4 +176,3 @@ $rowFields
                                     'Sliding',
                                     'pagination_control.phtml');
 CODE;
-?>

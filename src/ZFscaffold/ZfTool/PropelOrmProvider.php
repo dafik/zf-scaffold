@@ -3,233 +3,83 @@
 // PHP < 5.3 compatibility
 !defined('__DIR__') || define('__DIR__', dirname(__FILE__));
 
-//require_once __DIR__ . '/../../ZFscaffold/ZfTool/Exception.php';
-//require_once __DIR__ . '/../../ZFscaffold/Merger.php';
-//require_once __DIR__ . '/../../ZFscaffold/Inflector.php';
-
-/**
- * This class defines a provider for the ZF tool, it allows you generate
- * Data mapper, DbTables, Rowset, Row classes and the ZF controllers, views,
- * forms used for basic CRUD actions.
- *
- * All code is put into ZF application's default folders as guided by ZF.
- *
- * Usage: <code>generate propel-orm</code>
- *
- * For the provider to be properly loaded, please append the line below into
- * your .zf.ini file:
- *
- *  <code>basicloader.classes.10 = "ZFscaffold_ZfTool_ZodekenProvider"</code>
- *
- * (The number 10 is the order of the loaded class, it may be another number
- * up to your preferred configs)
- *
- * The .zf.ini file is located at your home folder, if it does not exist,
- * please run the command:
- *
- *  <code>create-config propel-orm</code>
- */
-
-/**
- *  provider for Zend Tool
- *
- * @package Zodeken
- * @author Thuan Nguyen <me@ndthuan.com>
- * @copyright Copyright(c) 2011 Thuan Nguyen <me@ndthuan.com>
- * @license http://www.gnu.org/licenses/lgpl-3.0.txt
- * @version $Id: ZodekenProvider.php 67 2012-08-25 11:47:08Z me@ndthuan.com $
- */
 class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_Abstract
 {
-    private $url;
-    private $database;
-    private $user;
-    private $password;
-    private $project;
+    private $config;
+    private $colorsSupport;
 
-    /**
-     * The public method that would be exposed into ZF tool
-     */
+    const CONFIG_FILE_NAME = 'generator.ini';
+    const DEFAULT_NUMBERS_OF_DATABASE = 1;
+
+    public function setRegistry(Zend_Tool_Framework_Registry_Interface $registry)
+    {
+        $response = $registry->getResponse();
+        ZFscaffold_ZfTool_Helpers_Messages::setResponse($response);
+        return parent::setRegistry($registry);
+    }
+
+    public function createConfig($force = 0)
+    {
+        $currentWorkingDirectory = getcwd();
+        $force = filter_var($force, FILTER_VALIDATE_BOOLEAN);
+
+        $ormDir = $currentWorkingDirectory . '/vendor/dafik/generator';
+        $schemaDir = $ormDir . '/schema';
+
+        if (!file_exists($schemaDir)) {
+            mkdir($schemaDir, 0777, true);
+        } else {
+            $this->_init($schemaDir);
+        }
+
+        $_countDatabases = Dfi_App_Config::getString('generator.numberOfDatabases', self::DEFAULT_NUMBERS_OF_DATABASE);
+
+        $question = "How many databases do you want setup ($_countDatabases): ";
+        $countDatabases = $this->_readInput($question);
+        if ('' === $countDatabases) {
+            $countDatabases = $_countDatabases;
+        }
+        Dfi_App_Config::set('generator.numberOfDatabases', $countDatabases);
+
+        $names = array();
+        for ($i = 0; $i < $countDatabases; $i++) {
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('attempt generate for ' . ($i + 1) . ' database', ZFscaffold_ZfTool_Helpers_Messages::MSG_SPECIAL, array('color' => 'hiMagenta'));
+
+            $this->_createProperties($schemaDir, $force, $i);
+            $this->_createRuntime($schemaDir, $force, $i);
+            $names[] = Dfi_App_Config::getString('generator.projectName.' . $i);
+        }
+        $this->_createMerge($names, $schemaDir, $force);
+
+
+        $this->_writeConfig($schemaDir);
+    }
+
     public function generate()
     {
 
         $currentWorkingDirectory = getcwd();
-        $ormDir = $currentWorkingDirectory . '/vendor/dafik/generator/schema';
-        $buildFile = $ormDir . '/build.properties';
-        $runtimeFile = $ormDir . '/runtime-conf.xml';
+        $schemaDir = $currentWorkingDirectory . '/vendor/dafik/generator/schema';
 
-        if (!file_exists($ormDir) || !file_exists($buildFile) || !file_exists($runtimeFile)) {
-            echo('schema not exist atempt to generate');
-            $this->createConfig(1);
-        }
+        $this->_init($schemaDir);
 
-        $currentWorkingDirectory = getcwd();
-        //$shouldUpdateConfigFile = false;
+        $configs = $this->_checkCountDatabases($schemaDir);
 
-        //$forceOverriding = $force ? true : false;
+        $this->_mergeRuntime($schemaDir, $configs);
 
-        // replace the slash just to print a beautiful message :D
-        $configDir = str_replace(
-            '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
-
-        $configFilePath = $configDir . 'application.ini';
-
-        if (!file_exists($configFilePath)) {
-
-            throw new ZFscaffold_ZfTool_Exception(
-                'Application config file not found: ' . $configFilePath
-            );
-        }
-        //$buildConfig = new Zend_Config_Ini($buildFile);
-
-        //$currentWorkingDirectory = $currentWorkingDirectory . '/tools/generator/schema';
-        //chdir($currentWorkingDirectory);
-
-        $argv = array(
-            'scriptname',
-            '-f',
-            $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
-            '-Dusing.propel-gen=true',
-            '-Dproject.dir=' . $currentWorkingDirectory . '/vendor/dafik/generator/schema',
-            'reverse',
-            '-logger',
-            'phing.listener.AnsiColorLogger'
-
-        );
-
-
-        putenv("PHING_HOME=" . realpath($currentWorkingDirectory . '/vendor/phing/phing'));
-
-        include '/srv/vhosts/local/test/vendor/phing/phing/bin/phing.php';
-
-        $schemaPath = $ormDir;
-        $mergeConfig = $schemaPath . '/merge.properties';
-
-
-        echo("\nmodifiying schema\n");
-        $merger = new ZFscaffold_ZfTool_Generator_Propel_Merger();
-        @$merger->merge($schemaPath, $mergeConfig);
-
-        $argv = array(
-            'scriptname',
-            '-f',
-            $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
-            '-Dusing.propel-gen=true',
-            '-Dproject.dir=' . $currentWorkingDirectory . '/vendor/dafik/generator/schema',
-            '-logger',
-            'phing.listener.AnsiColorLogger'
-
-        );
-
-        include '/srv/vhosts/local/test/vendor/phing/phing/bin/phing.php';
-
-        if (false !== strpos($currentWorkingDirectory, 'tools')) {
-            $pos = strpos($currentWorkingDirectory, 'tools');
-            $currentWorkingDirectory = substr($currentWorkingDirectory, 0, $pos - 1);
-            chdir($currentWorkingDirectory);
-        }
-
-        $_targetDir = $currentWorkingDirectory . '/application/models';
-        $question = "Target DirProject name ($_targetDir): ";
-        $targetDir = $this->_readInput($question);
-        if ('' === $targetDir) {
-            $targetDir = $_targetDir;
-        }
-
-        $tmp = explode("\n", file_get_contents($buildFile));
-        $buildConfig = array();
-        foreach ($tmp as $line) {
-            $parts = explode('=', $line);
-            $key = trim($parts[0]);
-            unset($parts[0]);
-            $buildConfig[$key] = trim(implode('=', $parts));
+        foreach ($configs as $i => $config) {
+            $this->_reverseSchema($schemaDir, $config, $currentWorkingDirectory);
+            $this->_modifiSchema($schemaDir, $config);
+            $this->_generateOrmCode($schemaDir, $config, $currentWorkingDirectory);
+            $this->_postOrmUpdate($schemaDir, $config, $i);
         }
 
 
-        $package = $buildConfig['propel.targetPackage'];
-        $project = $buildConfig['propel.project'];
-        $sourceDir = $schemaPath . '/build';
-
-
-        $map = $targetDir . '/map';
-        if (!file_exists($map)) {
-            mkdir($map, 0777, true);
-        }
-        $om = $targetDir . '/om';
-        if (!file_exists($om)) {
-            mkdir($om, 0777, true);
-        }
-
-
-        $copy[] = 'cp -n ' . $sourceDir . '/classes/' . $package . '/*.php ' . $targetDir;
-        $copy[] = 'cp -f ' . $sourceDir . '/classes/' . $package . '/map/*.php ' . $targetDir . '/map';
-        $copy[] = 'cp -f ' . $sourceDir . '/classes/' . $package . '/om/*.php ' . $targetDir . '/om';
-
-        $copy[] = 'cp -f ' . $sourceDir . '/conf/classmap-' . $project . '-conf.php ' . $targetDir . '/../configs';
-        $copy[] = 'cp -f ' . $sourceDir . '/conf/' . $project . '-conf.php ' . $targetDir . '/../configs';
-
-        foreach ($copy as $command) {
-            $out = array();
-            $val = 0;
-            exec($command, $out, $val);
-            if ($val) {
-                foreach ($out as $line) {
-                    echo $line . "\n";
-                }
-            }
-        }
-
-        $command = 'rm -rf ' . $sourceDir;
-        $out = array();
-        $val = 0;
-        exec($command, $out, $val);
-        if ($val) {
-            foreach ($out as $line) {
-                echo $line . "\n";
-            }
-        }
-
-        //$currentWorkingDirectory = getcwd();
-
-        $configDir = str_replace(
-            '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
-
-        $configFilePath = $configDir . 'application.ini';
-
-        $rawConfig = parse_ini_file($configFilePath, true, INI_SCANNER_RAW);
-        $rawConfig['production']['db.config'] = 'APPLICATION_PATH' . '  "/configs/' . $project . '-conf.php"';
-
-        $res = array();
-        foreach ($rawConfig as $key => $val) {
-            if (is_array($val)) {
-                $res[] = '[' . $key . ']';
-                foreach ($val as $skey => $sval) {
-                    $res[] = $skey . ' = ' . $this->parseIniValue($sval);
-                }
-            } else {
-                $res[] = $skey . ' = ' . $this->parseIniValue($sval);
-            }
-        }
-        $res = file_put_contents($configFilePath, implode("\r\n", $res));
+        $this->_deploy($schemaDir, $configs, $currentWorkingDirectory);
     }
 
-    private function parseIniValue($value)
+    private function _parseIniValue($value)
     {
-        /*      if (false !== strpos($value, PATH_SEPARATOR)) {
-                  $tmp1 = explode(PATH_SEPARATOR, $value);
-              } else {
-                  $tmp1 = array($value);
-              }
-              foreach ($tmp1 as $key => $value) {
-                  if (false !== strpos($value, '/')) {
-                      $tmp = realpath($value);
-                      if ($tmp) {
-                          $tmp1[$key] = $tmp;
-                      }
-                  }
-              }
-              $value = implode(PATH_SEPARATOR, $tmp1);*/
-
         $currentWorkingDirectory = getcwd() . '/application';
         $pos = strpos($value, $currentWorkingDirectory);
         if (false !== $pos) {
@@ -256,113 +106,128 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
         }
     }
 
-
-    public function createConfig($force = 0)
-    {
-        $currentWorkingDirectory = getcwd();
-        $force = filter_var($force, FILTER_VALIDATE_BOOLEAN);
-
-        //$path = realpath(APPLIATION_PATH . '/../tools/');
-
-
-        $ormDir = $currentWorkingDirectory . '/vendor/dafik/generator';
-        $schemaDir = $ormDir . '/schema';
-
-        if (!file_exists($schemaDir)) {
-            mkdir($schemaDir, 0777, true);
-        }
-        $this->_createProperties($schemaDir, $force);
-        $this->_createRuntime($schemaDir, $force);
-
-
-    }
-
-    private function _createProperties($schemaDir, $force)
+    private function _createProperties($schemaDir, $force, $i)
     {
 
-        $_project = 'mylime';
+        $_project = Dfi_App_Config::getString('generator.projectName.' . $i, 'default');
         $question = "Project name ($_project): ";
-        $this->project = $this->_readInput($question);
-        if ('' === $this->project) {
-            $this->project = $_project;
+        $project = $this->_readInput($question);
+        if ('' === $project) {
+            $project = $_project;
         }
+        Dfi_App_Config::set('generator.projectName.' . $i, $project);
 
-        $_targetPackage = 'models';
+
+        $_targetPackage = Dfi_App_Config::getString('generator.targetPackage.' . $i, 'models');
         $question = "Package name ($_targetPackage): ";
-        $targetPackage = $this->_readInput($question);
-        if ('' === $targetPackage) {
+        $targetPackage[$i] = $this->_readInput($question);
+        if ('' === $targetPackage[$i]) {
             $targetPackage = $_targetPackage;
         }
+        Dfi_App_Config::set('generator.targetPackage.' . $i, $targetPackage);
 
-        $_database = 'mysql';
+
+        $_database = Dfi_App_Config::getString('generator.database.' . $i, 'mysql');
         $question = "Database pgsql|mysql|sqlite|mssql|oracle ($_database): ";
-        $this->database = $this->_readInput($question);
-        if ('' === $this->database) {
-            $this->database = $_database;
+        $database = $this->_readInput($question);
+        if ('' === $database) {
+            $database = $_database;
         }
+        Dfi_App_Config::set('generator.database.' . $i, $database);
 
-        $_url = 'mysql:host=localhost;dbname=www';
+
+        $_url = Dfi_App_Config::getString('generator.url.' . $i, 'mysql:host=localhost;dbname=www');
         $question = "Url ($_url): ";
-        $this->url = $this->_readInput($question);
-        if ('' === $this->url) {
-            $this->url = $_url;
+        $url = $this->_readInput($question);
+        if ('' === $url) {
+            $url = $_url;
         }
+        Dfi_App_Config::set('generator.url.' . $i, $url);
 
-        $_user = 'root';
+
+        $_user = Dfi_App_Config::getString('generator.user.' . $i, 'root');
         $question = "User ($_user): ";
-        $this->user = $this->_readInput($question);
-        if ('' === $this->user) {
-            $this->user = $_user;
+        $user = $this->_readInput($question);
+        if ('' === $user) {
+            $user = $_user;
         }
+        Dfi_App_Config::set('generator.user.' . $i, $user);
 
-        $_password = 'alamakota';
+
+        $_password = Dfi_App_Config::getString('generator.password.' . $i, 'alamakota');
         $question = "Password ($_password): ";
-        $this->password = $this->_readInput($question);
-        if ('' === $this->password) {
-            $this->password = $_password;
+        $password = $this->_readInput($question);
+        if ('' === $password) {
+            $password = $_password;
         }
+        Dfi_App_Config::set('generator.password.' . $i, $password);
 
         $builderPath = realpath(__DIR__ . '/Generator/Propel/builder');
         $builderPathParts = explode(DIRECTORY_SEPARATOR, $builderPath);
 
+        $behaviorsPath = realpath(__DIR__ . '/Generator/Propel/behavior');
+        $behaviorsPathParts = explode(DIRECTORY_SEPARATOR, $behaviorsPath);
+
         $options = array();
-        $options[] = 'propel.project=' . $this->project;
+        $options[] = 'propel.project=' . $project;
         $options[] = 'propel.targetPackage=' . $targetPackage;
-        $options[] = 'propel.database=' . $this->database;
-        $options[] = 'propel.database.url=' . $this->url;
-        $options[] = 'propel.database.user=' . $this->user;
-        $options[] = 'propel.database.password=' . $this->password;
+        $options[] = 'propel.database=' . $database;
+        $options[] = 'propel.database.url=' . $url;
+        $options[] = 'propel.database.user=' . $user;
+        $options[] = 'propel.database.password=' . $password;
         $options[] = 'propel.addVendorInfo = true';
 
         $options[] = 'propel.builder.object.class = ' . implode('.', $builderPathParts) . '.DfiPHP5ObjectBuilder';
-        $options[] = 'propel.reverse.parser.class = ' . implode('.', $builderPathParts) . '.Dfi${propel.database}SchemaParser';
+        if ($database == 'mysql' || $database == 'pgsql') {
+            //TODO other databases
+            $options[] = 'propel.reverse.parser.class = ' . implode('.', $builderPathParts) . '.Dfi${propel.database}SchemaParser';
+        }
         $options[] = 'propel.builder.tablemap.class = ' . implode('.', $builderPathParts) . '.DfiPHP5TableMapBuilder';
+        $options[] = 'propel.builder.pluralizer.class = builder.util.StandardEnglishPluralizer';
+
+        $options[] = 'propel.behavior.equal_nest.class = ' . implode('.', $behaviorsPathParts) . '.equal_nest.EqualNestBehavior';
+        $options[] = 'propel.behavior.hashable.class = ' . implode('.', $behaviorsPathParts) . '.hashable.HashableBehavior';
 
 
-        $configPath = $schemaDir . '/build.properties';
-        if (!file_exists($configPath) || $force) {
-            $res = file_put_contents($configPath, implode("\r\n", $options));
-            echo "\nconfiguration :\n\n" . implode("\r\n", $options) . "\n";
-            echo "\nbuild.properties written to: $configPath\n";
-        } else {
-            echo 'build.properties exist';
+        $configPath = $schemaDir . '/' . $project . '/build.properties';
+        $dir = dirname($configPath);
+
+        if (!file_exists($dir)) {
+            $res = mkdir($dir, 0777, true);
+            if (!$res) {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('create directory failed:' . $dir, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+            }
         }
 
+        if (!file_exists($configPath) || $force) {
+            $res = file_put_contents($configPath, implode("\r\n", $options));
+            if (!$res) {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('configuration for ' . $project . ' write failed:' . $configPath, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+            }
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('configuration for ' . $project . ':');
+            ZFscaffold_ZfTool_Helpers_Messages::printOut(implode("\r\n", $options), ZFscaffold_ZfTool_Helpers_Messages::MSG_SPECIAL, array('color' => 'yellow', 'indention' => 2));
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('build.properties for ' . $project . ' written to: ' . $configPath);
+        } else {
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('build.properties  for ' . $project . ' exist: ' . $configPath);
+        }
     }
 
-    private function _createRuntime($schemaDir, $force)
+    private function _createRuntime($schemaDir, $force, $i)
     {
-        $configPath = $schemaDir . '/runtime-conf.xml';
+        $project = Dfi_App_Config::getString('generator.projectName.' . $i);
+        $configPath = $schemaDir . '/' . $project . '/' . $project . '-runtime-conf.xml';
+
+
         $template = __DIR__ . '/templates/orm/runtime-conf.xml';
 
         $sxe = simplexml_load_file($template);
 
-        $sxe->propel->datasources->attributes()->default = $this->project;
-        $sxe->propel->datasources->datasource->attributes()->id = $this->project;
-        $sxe->propel->datasources->datasource->adapter = $this->database;
-        $sxe->propel->datasources->datasource->connection->dsn = $this->url;
-        $sxe->propel->datasources->datasource->connection->user = $this->user;
-        $sxe->propel->datasources->datasource->connection->password = $this->password;
+        $sxe->propel->datasources->attributes()->default = Dfi_App_Config::get('generator.projectName.' . $i);
+        $sxe->propel->datasources->datasource->attributes()->id = Dfi_App_Config::get('generator.projectName.' . $i);
+        $sxe->propel->datasources->datasource->adapter = Dfi_App_Config::get('generator.database.' . $i);
+        $sxe->propel->datasources->datasource->connection->dsn = Dfi_App_Config::get('generator.url.' . $i);
+        $sxe->propel->datasources->datasource->connection->user = Dfi_App_Config::get('generator.user.' . $i);
+        $sxe->propel->datasources->datasource->connection->password = Dfi_App_Config::get('generator.password.' . $i);
 
         $dom = new DOMDocument;
         $dom->preserveWhiteSpace = FALSE;
@@ -378,45 +243,42 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
 
 
         if (!file_exists($configPath) || $force) {
-            file_put_contents($configPath, $out);
-            echo "\nconfiguration :\n\n" . $out . "\n";
-            echo "\nruntime-conf.xml written to: $configPath\n";
+            $res = file_put_contents($configPath, $out);
+            if (!$res) {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('configuration for ' . $project . ' write failed:' . $configPath, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+            } else {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('configuration for ' . $project . ' :');
+                ZFscaffold_ZfTool_Helpers_Messages::printOut($out, ZFscaffold_ZfTool_Helpers_Messages::MSG_SPECIAL, array('color' => 'yellow', 'indention' => 2));
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('runtime-conf.xml for ' . $project . ' written to: ' . $configPath);
+            }
         } else {
-            echo 'runtime-conf.xml exist';
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('runtime-conf.xml for ' . $project . ' exist');
         }
     }
 
-    /**
-     *
-     * @param string $filePath
-     * @param string $code
-     * @param bool $allowOverride
-     * @return integer -1 = existing, 1 = created, 0 = other
-     */
-    protected function _createFile($filePath, $code, $allowOverride = false)
+    private function _createMerge($names, $schemaDir, $force)
     {
-        $baseDir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $relativePath = str_replace($this->_cwd . '/', '', $filePath);
+        foreach ($names as $key => $name) {
+            $options = array();
+            $options[] = 'project.count=' . count($names);
+            $options[] = 'project.name=' . Dfi_App_Config::getString('generator.projectName.' . $key);
 
-        if (!file_exists($baseDir)) {
-            mkdir($baseDir, 0777, true);
+            $configPath = $schemaDir . '/' . Dfi_App_Config::getString('generator.projectName.' . $key) . '/merge.properties';
+
+            if (!file_exists($configPath) || $force) {
+                $res = file_put_contents($configPath, implode("\r\n", $options));
+                if (!$res) {
+                    ZFscaffold_ZfTool_Helpers_Messages::printOut('error writing merge.properties  for ' . $name . ' :' . $configPath, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+                } else {
+                    ZFscaffold_ZfTool_Helpers_Messages::printOut('merge.properties  for ' . $name . ':');
+                    ZFscaffold_ZfTool_Helpers_Messages::printOut(implode("\r\n", $options), ZFscaffold_ZfTool_Helpers_Messages::MSG_SPECIAL, array('color' => 'yellow', 'indention' => 2));
+                    ZFscaffold_ZfTool_Helpers_Messages::printOut('merge.properties  for ' . $name . 'written to: ' . $configPath);
+                }
+            } else {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('merge.properties  for ' . $name . ' exist');
+            }
         }
-
-        if (!$allowOverride && file_exists($filePath)) {
-            echo "\033[31mExisting\033[37m: $relativePath\n";
-            return -1;
-        }
-
-        if (@file_put_contents($filePath, $code)) {
-            echo "\033[32mCreating\033[37m: $relativePath\n";
-            return 1;
-        } else {
-            echo "\033[31mFAILED creating\033[37m: $relativePath\n";
-        }
-
-        return 0;
     }
-
 
     /**
      * Show the question and retrieve answer from user
@@ -426,80 +288,390 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
      */
     protected function _readInput($question)
     {
-        echo $question;
-
+        ZFscaffold_ZfTool_Helpers_Messages::printOut($question, ZFscaffold_ZfTool_Helpers_Messages::MSG_SPECIAL, array('color' => 'green'));
         return trim(fgets(STDIN));
     }
 
-    private function _getAppConfig($mode = false)
-    {
-        $currentWorkingDirectory = getcwd();
+    /*    private function _getAppConfig($mode = false)
+        {
+            $currentWorkingDirectory = getcwd();
 
-        $configDir = str_replace(
-            '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
+            $configDir = str_replace(
+                '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
 
-        $configFilePath = $configDir . 'application.ini';
+            $configFilePath = $configDir . 'application.ini';
 
-        if (!file_exists($configFilePath)) {
+            if (!file_exists($configFilePath)) {
 
-            throw new ZFscaffold_ZfTool_Exception(
-                'Application config file not found: ' . $configFilePath
-            );
+                throw new ZFscaffold_ZfTool_Exception(
+                    'Application config file not found: ' . $configFilePath
+                );
+            }
+
+            $this->_cwd = $currentWorkingDirectory;
+
+            define('APPLICATION_PATH', 'asasdasd');
+            // used to get db configs
+            $config = new Zend_Config_Ini($configFilePath, null, array(
+                'skipExtends' => true,
+                'allowModifications' => $mode
+            ));
+
+
+            return $config;
         }
 
-        $this->_cwd = $currentWorkingDirectory;
+        private function _writeAppConfig($config)
+        {
+            $currentWorkingDirectory = getcwd();
 
-        define('APPLICATION_PATH', 'asasdasd');
+            $configDir = str_replace(
+                '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
 
-        $x = parse_ini_file($configFilePath);
-        $x1 = parse_ini_file($configFilePath, true);
-        $x2 = parse_ini_file($configFilePath, true, INI_SCANNER_RAW);
+            $configFilePath = $configDir . 'application.ini';
 
-        // used to get db configs
-        $config = new Zend_Config_Ini($configFilePath, null, array(
-            'skipExtends' => true,
-            'allowModifications' => $mode
-        ));
+            if (!file_exists($configFilePath)) {
+
+                throw new ZFscaffold_ZfTool_Exception(
+                    'Application config file not found: ' . $configFilePath
+                );
+            }
 
 
-        return $config;
+            // used to get db configs
+            $writer = new Zend_Config_Writer_Ini(array(
+                    'config' => $config,
+                    'filename' => $configFilePath
+                )
+            );
+            $backupName = 'application.ini';
+            $backupCount = 1;
+
+            // create a backup
+            while (file_exists($configDir . "$backupName.$backupCount")) {
+                ++$backupCount;
+            }
+            copy($configFilePath, $configDir . "$backupName.$backupCount");
+
+            $writer->write();
+        }*/
+    private function _checkCountDatabases($path)
+    {
+
+        $numberOfDatabases = Dfi_App_Config::get('generator.numberOfDatabases');
+
+        $found = array();
+        for ($i = 0; $i < $numberOfDatabases; $i++) {
+
+            $projectName = Dfi_App_Config::getString('generator.projectName.' . $i);
+            $dirIterator = new DirectoryIterator($path . '/' . $projectName);
+            /** @var $splFileInfo DirectoryIterator */
+            foreach ($dirIterator as $splFileInfo) {
+                if (!$splFileInfo->isDot() && $splFileInfo->isFile()) {
+                    if (preg_match('/build\.properties/', $splFileInfo->getFilename())) {
+                        $found[$i] = $projectName;
+                    }
+                }
+            }
+        }
+        return $found;
     }
 
-    private function _writeAppConfig($config)
+    //$ormDir, $config, $currentWorkingDirectory
+    private function _reverseSchema($schemaDir, $config, $currentWorkingDirectory)
     {
-        $currentWorkingDirectory = getcwd();
+        $buildFile = $schemaDir . '/' . $config . '/build.properties';
+        $runtimeFile = $schemaDir . '/' . $config . '/runtime-conf.xml';
 
-        $configDir = str_replace(
-            '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
-
-        $configFilePath = $configDir . 'application.ini';
-
-        if (!file_exists($configFilePath)) {
-
-            throw new ZFscaffold_ZfTool_Exception(
-                'Application config file not found: ' . $configFilePath
-            );
+        if (!file_exists($schemaDir) || !file_exists($buildFile) || !file_exists($runtimeFile)) {
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('schema not exist attempt to generate');
+            $this->createConfig(1);
         }
 
 
-        // used to get db configs
-        $writer = new Zend_Config_Writer_Ini(array(
-                'config' => $config,
-                'filename' => $configFilePath
-            )
+        $_SERVER['argv'] = array(
+            'scriptname',
+            '-f',
+            $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
+            '-Dusing.propel-gen=true',
+            '-Dproject.dir=' . $currentWorkingDirectory . '/vendor/dafik/generator/schema/' . $config,
+            '-Dbuild.properties=build.properties',
+            'reverse'
+            //'-verbose'
         );
-        $backupName = 'application.ini';
-        $backupCount = 1;
 
-        // create a backup
-        while (file_exists($configDir . "$backupName.$backupCount")) {
-            ++$backupCount;
+        if ($this->_hasColorsSupport()) {
+            $_SERVER['argv'][] = '-logger';
+            $_SERVER['argv'][] = 'phing.listener.AnsiColorLogger';
+        } else {
+            $_SERVER['argv'][] = '-logger';
+            $_SERVER['argv'][] = 'phing.listener.DefaultLogger';
         }
-        copy($configFilePath, $configDir . "$backupName.$backupCount");
 
 
-        $writer->write();
+        putenv("PHING_HOME=" . realpath($currentWorkingDirectory . '/vendor/phing/phing'));
+
+        $phingFile = $currentWorkingDirectory . '/vendor/phing/phing/bin/phing.php';
+        $result = include $phingFile;
+
+        return $result;
+    }
+
+    private function _modifiSchema($schemaDir, $config)
+    {
+        $schemaPath = $schemaDir;
+        $mergeConfig = $schemaDir . '/' . $config . '/merge.properties';
+
+        ZFscaffold_ZfTool_Helpers_Messages::printOut('modifiying schema');
+        $merger = new ZFscaffold_ZfTool_Generator_Propel_Merger();
+        @$merger->merge($schemaDir . '/' . $config, $mergeConfig);
+        return $schemaPath;
+    }
+
+    private function _generateOrmCode($schemaDir, $config, $currentWorkingDirectory)
+    {
+        $_SERVER['argv'] = array(
+            'scriptname',
+            '-f',
+            $currentWorkingDirectory . '/vendor/propel/propel1/generator/build.xml',
+            '-Dusing.propel-gen=true',
+            '-Dproject.dir=' . $schemaDir . '/' . $config,
+            '-Dbuild.properties=build.properties',
+            //'-verbose'
+
+        );
+        if ($this->_hasColorsSupport()) {
+            $_SERVER['argv'][] = '-logger';
+            $_SERVER['argv'][] = 'phing.listener.AnsiColorLogger';
+        } else {
+            $_SERVER['argv'][] = '-logger';
+            $_SERVER['argv'][] = 'phing.listener.DefaultLogger';
+        }
+
+        putenv("PHING_HOME=" . realpath($currentWorkingDirectory . '/vendor/phing/phing'));
+        $phingFile = $currentWorkingDirectory . '/vendor/phing/phing/bin/phing.php';
+        /** @noinspection PhpIncludeInspection */
+        $result = include $phingFile;
+
+        return $result;
+    }
+
+    private function _mergeRuntime($ormDir, $configs)
+    {
+        $files = array();
+
+        $default = Dfi_App_Config::get('generator.default');
+
+        foreach ($configs as $config) {
+            $runtimeFile = $ormDir . '/' . $config . '/' . $config . '-runtime-conf.xml';
+            $files[] = $runtimeFile;
+        }
+        $defaultIndex = array_search($default, $configs);
+
+        $main = $files[$defaultIndex];
+        unset($files[$defaultIndex]);
+
+        $destinationDocument = new DOMDocument();
+        $destinationDocument->preserveWhiteSpace = false;
+        $destinationDocument->formatOutput = true;
+
+        $res = $destinationDocument->loadXML(file_get_contents($main));
+        if (!$res) {
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('error loding xml  runtime conf ' . $main, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+        }
+
+
+        foreach ($files as $file) {
+
+            $docSource = new DOMDocument();
+            $res = $docSource->loadXML(file_get_contents($file));
+            if (!$res) {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('error loding xml  runtime conf ' . $file, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+            }
+
+
+            $xpath = new DOMXPath($docSource);
+
+            $result = $xpath->query('//datasource');
+            foreach ($result as $node) {
+
+                $result = $destinationDocument->importNode($node, true); //Copy the node to the other document
+                $items = $destinationDocument->getElementsByTagName('datasources')->item(0);
+                $items->appendChild($result); //Add the copied node to the destination document
+            }
+        }
+
+        foreach ($configs as $config) {
+            $runtimeFile = $ormDir . '/' . $config . '/runtime-conf.xml';
+            $res = $destinationDocument->save($runtimeFile);
+            if (!$res) {
+                ZFscaffold_ZfTool_Helpers_Messages::printOut('error writing runtime conf ' . $runtimeFile, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+            }
+        }
+
 
     }
 
+    private function _postOrmUpdate($ormDir, $config, $i)
+    {
+        $postUpdateFile = $ormDir . '/' . $config . '/' . 'post-update.php';
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        $package = Dfi_App_Config::getString('generator.targetPackage.' . $i);
+        if (file_exists($postUpdateFile)) {
+            include $postUpdateFile;
+        }
+    }
+
+    private function _deploy($schemaDir, $configs, $currentWorkingDirectory)
+    {
+        if (false !== strpos($currentWorkingDirectory, 'tools')) {
+            $pos = strpos($currentWorkingDirectory, 'tools');
+            $currentWorkingDirectory = substr($currentWorkingDirectory, 0, $pos - 1);
+            chdir($currentWorkingDirectory);
+        }
+
+        $_targetDir = Dfi_App_Config::getString('generator.targetDir', $currentWorkingDirectory . '/application/models');
+        $question = "Target DirProject name ($_targetDir): ";
+
+        $targetDir = $this->_readInput($question);
+        if ('' === $targetDir) {
+            $targetDir = $_targetDir;
+        }
+        unset($_targetDir, $question);
+        Dfi_App_Config::set('generator.targetDir', $targetDir);
+
+        $propelCnf = array();
+        $classmap = array();
+        $sourceDir = '';
+
+        foreach ($configs as $key => $config) {
+            $package = Dfi_App_Config::getString('generator.targetPackage.' . $key);
+            $sourceDir = $schemaDir . '/' . $config . '/build';
+
+            $map = $targetDir . '/' . $config . '/map';
+            if (!file_exists($map)) {
+                mkdir($map, 0777, true);
+            }
+            $om = $targetDir . '/' . $config . '/om';
+            if (!file_exists($om)) {
+                mkdir($om, 0777, true);
+            }
+
+            $copy = array();
+            $copy[] = 'cp -n ' . $sourceDir . '/classes/' . $package . '/*.php ' . $targetDir . '/' . $config;
+            $copy[] = 'cp -f ' . $sourceDir . '/classes/' . $package . '/map/*.php ' . $targetDir . '/' . $config . '/map';
+            $copy[] = 'cp -f ' . $sourceDir . '/classes/' . $package . '/om/*.php ' . $targetDir . '/' . $config . '/om';
+
+            $file = $sourceDir . '/conf/classmap-' . $config . '-conf.php';
+            $arr = include $file;
+            $classmap = array_merge($classmap, $arr);
+            $propelCnf[$config] = $sourceDir . '/conf/' . $config . '-conf.php';
+
+            foreach ($copy as $command) {
+                $out = array();
+                $val = 0;
+                exec($command, $out, $val);
+                if ($val) {
+                    foreach ($out as $line) {
+                        ZFscaffold_ZfTool_Helpers_Messages::printOut($line, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+                    }
+                }
+            }
+        }
+
+        $default = Dfi_App_Config::getString('generator.default');
+
+        $dst = realpath($targetDir . '/..') . '/configs/' . $default . '-conf.php';
+        $src = $propelCnf[$default];
+        rename($src, $dst);
+        $dst = realpath($targetDir . '/..') . '/configs/classmap-' . $default . '-conf.php';
+        $map = '<? return ' . var_export($classmap, true) . ';';
+        $res = file_put_contents($dst, $map);
+        if (!$res) {
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('error writing classmap:' . $dst, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+        }
+
+
+        //$currentWorkingDirectory = getcwd();
+
+        $configDir = str_replace(
+            '/', DIRECTORY_SEPARATOR, $currentWorkingDirectory . '/application/configs/');
+
+        $configFilePath = $configDir . 'application.ini';
+
+        $rawConfig = parse_ini_file($configFilePath, true, INI_SCANNER_RAW);
+        $rawConfig['production']['db.config'] = 'APPLICATION_PATH' . '  "/configs/' . $default . '-conf.php"';
+
+        $res = array();
+        foreach ($rawConfig as $key => $val) {
+            if (is_array($val)) {
+                $res[] = '[' . $key . ']';
+                foreach ($val as $skey => $sval) {
+                    $res[] = $skey . ' = ' . $this->_parseIniValue($sval);
+                }
+            } else {
+                $res[] = $key . ' = ' . $this->_parseIniValue($val);
+            }
+        }
+        $res = file_put_contents($configFilePath, implode("\r\n", $res));
+
+        if (!$res) {
+            ZFscaffold_ZfTool_Helpers_Messages::printOut('error writing app config :' . $configFilePath, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+        }
+
+        foreach ($configs as $config) {
+            $sourceDir = $schemaDir . '/' . $config . '/build';
+            $command = 'rm -rf ' . $sourceDir;
+            $out = array();
+            $val = 0;
+            exec($command, $out, $val);
+            if ($val) {
+                foreach ($out as $line) {
+                    ZFscaffold_ZfTool_Helpers_Messages::printOut($line, ZFscaffold_ZfTool_Helpers_Messages::MSG_ERROR);
+                }
+            }
+        }
+    }
+
+    private function _init($schemaDir)
+    {
+        defined('APPLICATION_ENV') || define('APPLICATION_ENV', 'production');
+        $configLocation = $schemaDir . '/' . self::CONFIG_FILE_NAME;
+
+
+        if (file_exists($configLocation)) {
+            $this->config = new Zend_Config_Ini($configLocation, null, array(
+                'skipExtends' => true,
+                'allowModifications' => true
+            ));
+        } else {
+            $this->config = new Zend_Config(array(), true);
+        }
+
+        Dfi_App_Config::setConfig($this->config);
+    }
+
+    private function _writeConfig($schemaDir)
+    {
+        $configWriter = new Zend_Config_Writer_Ini(array(
+            'filename' => $schemaDir . '/' . self::CONFIG_FILE_NAME,
+            'config' => $this->config,
+            'renderWithoutSections' => true,
+            'exclusiveLock' => true
+        ));
+        $configWriter->write();
+    }
+
+    private function _hasColorsSupport()
+    {
+        if (null === $this->colorsSupport) {
+            $color_numbers = @exec('tput colors');
+            if (empty($color_numbers)) {
+                $this->colorsSupport = false;
+            } else {
+                $this->colorsSupport = true;
+            }
+        }
+        return $this->colorsSupport;
+    }
 }

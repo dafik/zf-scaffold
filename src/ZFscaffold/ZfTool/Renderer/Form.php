@@ -31,7 +31,7 @@ class ZFscaffold_ZfTool_Renderer_Form extends ZFscaffold_ZfTool_Renderer_Abstrac
         foreach ($tableDefinition->getColumns() as $field) {
 
 
-            $fieldNames[] = $field->getColumnName();
+            $fieldNames[] = $field->getName();
 
             $addedCode = null;
             $fieldType = null;
@@ -117,7 +117,7 @@ class ZFscaffold_ZfTool_Renderer_Form extends ZFscaffold_ZfTool_Renderer_Abstrac
                         $filters[] = 'new Zend_Filter_StringTrim()';
                         $fieldConfigs[] = '->setAttrib("maxlength", ' . $field->getSize() . ')';
 
-                        if ('email' === strtolower($field->getColumnName()) || 'emailaddress' === strtolower($field->getColumnName())) {
+                        if ('email' === strtolower($field->getName()) || 'emailaddress' === strtolower($field->getName())) {
                             $validators[] = 'new Zend_Validate_EmailAddress()';
                         }
                         break;
@@ -163,7 +163,7 @@ class ZFscaffold_ZfTool_Renderer_Form extends ZFscaffold_ZfTool_Renderer_Abstrac
 
             $fieldCode = array(
                 '$this->addElement(',
-                '$this->createElement(\'' . $fieldType . '\', \'' . $field->getColumnName() . '\')',
+                '$this->createElement(\'' . $fieldType . '\', \'' . $field->getName() . '\')',
                 $fieldConfigs,
                 ');'
             );

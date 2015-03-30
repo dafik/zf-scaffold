@@ -15,7 +15,8 @@ class ZFscaffold_ZfTool_Renderer_Controller_Default_Module extends ZFscaffold_Zf
         $menuConfig = array();
 
         /** @var $tableDefinition TableMap */
-        foreach ($this->getObject('tables') as $tableName => $tableDefinition) {
+        /** @noinspection PhpWrongForeachArgumentTypeInspection */
+        foreach ($this->getObject('tables') as $tableDefinition) {
             $menuConfig[] = array(
                 'label' => $tableDefinition->getPhpName(),
                 'module' => $this->getVariable('moduleName'),

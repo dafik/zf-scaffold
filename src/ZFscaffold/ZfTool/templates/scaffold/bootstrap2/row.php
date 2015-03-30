@@ -17,4 +17,4 @@ class $tableDefinition[rowClassName] extends $tableDefinition[rowClassNameAbstra
 }
 
 CODE;
-?>
+

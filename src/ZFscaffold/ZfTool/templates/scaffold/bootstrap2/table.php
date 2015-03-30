@@ -15,4 +15,3 @@ class $tableDefinition[className] extends $tableDefinition[classNameAbstract]
     // write your custom functions here
 }
 CODE;
-?>

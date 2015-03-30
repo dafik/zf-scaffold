@@ -5,40 +5,17 @@
 
 require_once __DIR__ . '/../../ZFscaffold/ZfTool/Exception.php';
 
-/**
- * This class defines a provider for the ZF tool, it allows you generate
- * Data mapper, DbTables, Rowset, Row classes and the ZF controllers, views,
- * forms used for basic CRUD actions.
- *
- * All code is put into ZF application's default folders as guided by ZF.
- *
- * Usage: <code>generate propel-orm</code>
- *
- * For the provider to be properly loaded, please append the line below into
- * your .zf.ini file:
- *
- *  <code>basicloader.classes.10 = "ZFscaffold_ZfTool_ZodekenProvider"</code>
- *
- * (The number 10 is the order of the loaded class, it may be another number
- * up to your preferred configs)
- *
- * The .zf.ini file is located at your home folder, if it does not exist,
- * please run the command:
- *
- *  <code>create-config propel-orm</code>
- */
 
-/**
- *  provider for Zend Tool
- *
- * @package Zodeken
- * @author Thuan Nguyen <me@ndthuan.com>
- * @copyright Copyright(c) 2011 Thuan Nguyen <me@ndthuan.com>
- * @license http://www.gnu.org/licenses/lgpl-3.0.txt
- * @version $Id: ZodekenProvider.php 67 2012-08-25 11:47:08Z me@ndthuan.com $
- */
 class ZFscaffold_ZfTool_ZFProjectProvider extends Zend_Tool_Framework_Provider_Abstract
 {
+
+    public function setRegistry(Zend_Tool_Framework_Registry_Interface $registry)
+    {
+        $response = $registry->getResponse();
+        ZFscaffold_ZfTool_Helpers_Messages::setResponse($response);
+        return parent::setRegistry($registry);
+    }
+
     /**
      * The public method that would be exposed into ZF tool
      */

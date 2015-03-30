@@ -170,4 +170,3 @@ $functions
 }
 
 CODE;
-?>

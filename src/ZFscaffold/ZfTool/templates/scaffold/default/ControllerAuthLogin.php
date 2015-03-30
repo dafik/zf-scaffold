@@ -27,7 +27,7 @@ class VAR_controllerNamePrefixLoginController extends VAR_extends
     {
         //$url = $this->_getParam('url');
 
-        $this->_forward('index');
+        $this->forward('index');
     }
 
     public function indexAction()
@@ -76,15 +76,15 @@ class VAR_controllerNamePrefixLoginController extends VAR_extends
     {
         $form = new Zend_Form ();
 
-        $email = $form->createElement('text', 'login');
+        $email = new Zend_Form_Element_text('login');
         $email->setOptions(array('label' => 'Login'))->setRequired(true);
 
-        $password = $form->createElement('password', 'password');
+        $password = new Zend_Form_Element_password('password');
         $password->setOptions(array('label' => 'Hasło'))->setRequired(true);
         $filter = new Zend_Filter_StripTags ();
         $password->addFilters(array($filter));
 
-        $submit = $form->createElement('submit', 'submit');
+        $submit = new Zend_Form_Element_submit('submit');
         $submit->setOptions(array('label' => 'Dalej'));
 
         $form->addElement($email)->addElement($password)->addElement($submit);

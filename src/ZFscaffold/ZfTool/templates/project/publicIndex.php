@@ -5,12 +5,14 @@ try {
     defined('APPLICATION_PATH') || define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/../application'));
 
     // Define application environment
+    /** @noinspection PhpConstantReassignmentInspection */
     defined('APPLICATION_ENV') || define('APPLICATION_ENV', (getenv('APPLICATION_ENV') ? getenv('APPLICATION_ENV') : 'production'));
 
     // Ensure library/ is on include_path
     set_include_path(implode(PATH_SEPARATOR, array(APPLICATION_PATH, realpath(APPLICATION_PATH . '/../vendor/zendframework/zendframework1/library'), get_include_path())));
 
 
+    /** @noinspection PhpIncludeInspection */
     require_once '../vendor/autoload.php';
 
 //    require_once '../library/Zend/Loader/AutoloaderFactory.php';
