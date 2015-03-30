@@ -15,19 +15,12 @@
                 <connection>
                     <!--<classname>PDO</classname>-->
                     <dsn>mysql:host=dev;dbname=cc</dsn>
-                    <user>dafi</user>
-                    <password>alamakota</password>
-                    <options>
-                        <option id="ATTR_PERSISTENT">false</option>
-                    </options>
-                    <attributes>
-                        <attribute id="ATTR_EMULATE_PREPARES">true</attribute>
-                    </attributes>
+                    <user>******</user>
+                    <password>******</password>
                     <settings>
                         <setting id="charset">utf8</setting>
                     </settings>
                 </connection>
-
             </datasource>
         </datasources>
     </propel>
