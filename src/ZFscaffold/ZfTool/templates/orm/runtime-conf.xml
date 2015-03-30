@@ -15,8 +15,8 @@
                 <connection>
                     <!--<classname>PDO</classname>-->
                     <dsn>mysql:host=dev;dbname=cc</dsn>
-                    <user>******</user>
-                    <password>******</password>
+                    <user>dafi</user>
+                    <password>alamakota</password>
                     <settings>
                         <setting id="charset">utf8</setting>
                     </settings>
