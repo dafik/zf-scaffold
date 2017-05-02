@@ -673,10 +673,10 @@ class ZFscaffold_ZfTool_PropelOrmProvider extends Zend_Tool_Framework_Provider_A
 
         $default = Dfi\App\Config::getString('generator.default');
 
-        $dst = realpath($targetDir . '/..') . '/configs/' . $default . '-conf.php';
+        $dst = realpath($targetDir . '/..') . '/configs/db/' . $default . '-conf.php';
         $src = $propelCnf[$default];
         rename($src, $dst);
-        $dst = realpath($targetDir . '/..') . '/configs/classmap-' . $default . '-conf.php';
+        $dst = realpath($targetDir . '/..') . '/configs/db/classmap-' . $default . '-conf.php';
         $map = '<? return ' . var_export($classmap, true) . ';';
         $res = file_put_contents($dst, $map);
         if (!$res) {

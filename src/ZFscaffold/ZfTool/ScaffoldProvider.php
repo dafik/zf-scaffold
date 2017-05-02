@@ -131,9 +131,6 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
 
         $this->_initIncludePaths($includeConfig);
 
-        Zend_Loader_Autoloader::getInstance()->registerNamespace('Dfi_')->suppressNotFoundWarnings(true);
-
-
         foreach (Dfi\App\Config::getConfig(true, false, array(), 'scaffold') as $key => $value) {
             $method = '_' . $key;
             if (property_exists($this, $method)) {

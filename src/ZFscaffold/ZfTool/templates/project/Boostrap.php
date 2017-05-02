@@ -9,7 +9,6 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     {
 
         $autoloader = Zend_Loader_Autoloader::getInstance();
-        $autoloader->registerNamespace('Dfi_');
         $autoloader->registerNamespace('application_');
         $autoloader->registerNamespace('EasyBib_');
         // $autoloader->registerNamespace('nusoap_');
@@ -82,8 +81,8 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         ini_set('display_errors', 0);
         ini_set('error_log', _LOG_PATH . 'php.errors.log');
 
-        set_error_handler(array('\\Dfi\\Error\\\Handler', 'errorHandler'), E_ALL);
-        register_shutdown_function(array('\\Dfi\\Error\\Handler', 'shutdown'));
+        set_error_handler(array('Dfi\\Error\\Handler', 'errorHandler'), E_ALL);
+        register_shutdown_function(array('Dfi\\Error\\Handler', 'shutdown'));
 
         if (Dfi\App\Config::get('main.showDebug')) {
             Zend_Controller_Front::getInstance()->throwExceptions(true);
@@ -158,7 +157,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $view->doctype('XHTML1_STRICT');
 
 
-        $view->addHelperPath(array(_BASE_PATH . 'library/Dfi/View/Helper', 'Dfi/View/Helper/'), '\\Dfi\\View\\Helper\\');
+        $view->addHelperPath(array(_BASE_PATH . 'library/Dfi/View/Helper', 'Dfi/View/Helper/'), 'Dfi\\View\\Helper\\');
         $view->addBasePath(APPLICATION_PATH . '/layouts/partials/');
 
 

@@ -48,9 +48,6 @@ class ZFscaffold_ZfTool_FormsProvider extends Zend_Tool_Framework_Provider_Abstr
 
 
         $this->_initIncludePaths($includeConfig);
-
-        Zend_Loader_Autoloader::getInstance()->registerNamespace('Dfi_')->suppressNotFoundWarnings(true);
-
     }
 
 
@@ -141,7 +138,6 @@ class ZFscaffold_ZfTool_FormsProvider extends Zend_Tool_Framework_Provider_Abstr
         set_include_path(implode(PATH_SEPARATOR, $parts));
 
         Zend_Loader_Autoloader::getInstance()
-            ->registerNamespace('Dfi_')
             ->registerNamespace('application_')
             ->registerNamespace('ZFscaffold_');
 
@@ -201,6 +197,7 @@ class ZFscaffold_ZfTool_FormsProvider extends Zend_Tool_Framework_Provider_Abstr
 
             $fullBody =
                 '<?php
+class  forms_' . $newClassName . ' extends Dfi\\Form
 class  forms_' . $newClassName . ' extends \\Dfi\\Form
 {
     public function init()

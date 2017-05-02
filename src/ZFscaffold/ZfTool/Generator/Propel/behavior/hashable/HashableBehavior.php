@@ -23,8 +23,6 @@ public function getHashable()
 
     public function queryMethods($builder)
     {
-
-
         $this->builder = $builder;
         $script        = '';
 
