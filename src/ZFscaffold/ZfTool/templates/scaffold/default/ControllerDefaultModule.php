@@ -46,12 +46,12 @@ abstract class VAR_extends extends application_BaseController
 
         $this->view->getHelper('Doctype')->setDoctype(Zend_View_Helper_Doctype::XHTML11);
 
-        $this->messages = Dfi_Controller_Action_Helper_Messages::getInstance();
+        $this->messages = Dfi\Controller\Action\Helper\Messages::getInstance();
         Zend_Controller_Action_HelperBroker::addHelper($this->messages);
 
-        Zend_Auth::getInstance()->setStorage(new Dfi_Auth_Storage_Cookie('VAR_user'));
+        Zend_Auth::getInstance()->setStorage(new Dfi\Auth\Storage\Cookie('VAR_user'));
 
-        /*   $this->messages->addMessage(Dfi_Controller_Action_Helper_Messages::TYPE_DEBUG, 'test  - DEBUG');
+        /*   $this->messages->addMessage(Dfi\Controller\Action\Helper\Messages::TYPE_DEBUG, 'test  - DEBUG');
            $this->messages->addMessage('error', 'test');
            $this->messages->addMessage('confirmation', 'test');
            $this->messages->addMessage('notice', 'test');*/

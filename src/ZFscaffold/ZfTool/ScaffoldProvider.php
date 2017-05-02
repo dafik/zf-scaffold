@@ -126,7 +126,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         $this->cwd = getcwd();
         $this->_initPaths($this->cwd . '/application');
         $this->_readAppConfig();
-        $includeConfig = Dfi_App_Config::get('phpSettings.include_path', '');
+        $includeConfig = Dfi\App\Config::get('phpSettings.include_path', '');
 
 
         $this->_initIncludePaths($includeConfig);
@@ -134,14 +134,14 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         Zend_Loader_Autoloader::getInstance()->registerNamespace('Dfi_')->suppressNotFoundWarnings(true);
 
 
-        foreach (Dfi_App_Config::getConfig(true, false, array(), 'scaffold') as $key => $value) {
+        foreach (Dfi\App\Config::getConfig(true, false, array(), 'scaffold') as $key => $value) {
             $method = '_' . $key;
             if (property_exists($this, $method)) {
                 $this->$method = $value;
             }
         }
 
-        $propelConfig = Dfi_App_Config::get('db.config', null);
+        $propelConfig = Dfi\App\Config::get('db.config', null);
         if (null === $propelConfig) {
 
             $projectProvider = $this->_registry->getProviderRepository()->getProvider('propelorm');
@@ -272,7 +272,7 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         }
 
         /** @noinspection PhpToStringImplementationInspection */
-        if (Dfi_File::isReadable($path . $template)) {
+        if (Dfi\File::isReadable($path . $template)) {
             return file_get_contents($path . $template);
         } else {
             throw new ZFscaffold_ZfTool_Exception('template defined but not found: ' . $template, self::MSG_ERROR);
@@ -505,8 +505,8 @@ class ZFscaffold_ZfTool_ScaffoldProvider extends Zend_Tool_Framework_Provider_Ab
         /** @var $table TableMap */
         foreach ($this->tables as $table) {
             $table->buildRelations();
-            Dfi_Propel_Helper::bulidRelationsOnFK($table);
-            Dfi_Propel_Helper::findAutoLabel($table);
+            Dfi\Propel\Helper::bulidRelationsOnFK($table);
+            Dfi\Propel\Helper::findAutoLabel($table);
         }
     }
 

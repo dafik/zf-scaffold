@@ -44,7 +44,7 @@ class ZFscaffold_ZfTool_FormsProvider extends Zend_Tool_Framework_Provider_Abstr
         $this->cwd = getcwd();
         $this->_initPaths($this->cwd . '/application');
         $this->_readAppConfig();
-        $includeConfig = Dfi_App_Config::get('phpSettings.include_path', '');
+        $includeConfig = Dfi\App\Config::get('phpSettings.include_path', '');
 
 
         $this->_initIncludePaths($includeConfig);
@@ -201,7 +201,7 @@ class ZFscaffold_ZfTool_FormsProvider extends Zend_Tool_Framework_Provider_Abstr
 
             $fullBody =
                 '<?php
-class  forms_' . $newClassName . ' extends Dfi_Form
+class  forms_' . $newClassName . ' extends \\Dfi\\Form
 {
     public function init()
     {
@@ -211,17 +211,17 @@ class  forms_' . $newClassName . ' extends Dfi_Form
 
                 . str_replace('$form', '$this', $body) .
                 '
-        $opt = Dfi_Form_Decorator::getDefaults(\'_ElementDecorator\', Dfi_Form_Decorator::BOOTSTRAP);
+        $opt = Dfi\Form\Decorator::getDefaults(\'_ElementDecorator\', Dfi\Form\Decorator::BOOTSTRAP);
         $opt[4][1][\'class\'] = \'col-md-2 \' . $opt[4][1][\'class\'];
         $opt[3][1][\'class\'] = \'col-md-10\';
-        Dfi_Form_Decorator::overrideDefaults(\'_ElementDecorator\', Dfi_Form_Decorator::BOOTSTRAP, $opt);
+        Dfi\Form\Decorator::overrideDefaults(\'_ElementDecorator\', Dfi\Form\Decorator::BOOTSTRAP, $opt);
 
-        $opt = Dfi_Form_Decorator::getDefaults(\'_FormDecorator\', Dfi_Form_Decorator::BOOTSTRAP);
+        $opt = Dfi\Form\Decorator::getDefaults(\'_FormDecorator\', Dfi\Form\Decorator::BOOTSTRAP);
         $opt[] = \'BootstrapWidget\';
-        Dfi_Form_Decorator::overrideDefaults(\'_FormDecorator\', Dfi_Form_Decorator::BOOTSTRAP, $opt);
+        Dfi\Form\Decorator::overrideDefaults(\'_FormDecorator\', Dfi\Form\Decorator::BOOTSTRAP, $opt);
 
 
-        Dfi_Form_Decorator::setFormDecorator($this, Dfi_Form_Decorator::BOOTSTRAP, \'submit\', \'cancel\');
+        Dfi\Form\Decorator::setFormDecorator($this, Dfi\Form\Decorator::BOOTSTRAP, \'submit\', \'cancel\');
 
         parent::init();
     }

@@ -108,7 +108,7 @@ class ZFscaffold_ZfTool_Renderer_Abstract
     public function render()
     {
         $template = $this->getTemplate();
-        if (Dfi_File::isReadable($template)) {
+        if (Dfi\File::isReadable($template)) {
             $code = file_get_contents($template);
             $code = $this->prepare($code);
             $this->renderedCode = $code;

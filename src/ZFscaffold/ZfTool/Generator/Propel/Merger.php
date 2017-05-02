@@ -8,6 +8,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
      */
     private $config;
     private $schemaXml;
+    private $ciMap;
 
     public function merge($schemaPath, $config)
     {
@@ -19,7 +20,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
 
 
         $this->schemaXml = $schemaPath . '/schema.xml';
-        if (Dfi_File::isReadable($config)) {
+        if (Dfi\File::isReadable($config)) {
             $this->config = new Zend_Config_Ini($config);
         } else {
             $this->config = new Zend_Config(array());
@@ -56,6 +57,9 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
 
             $domElemsToRemove = array();
 
+
+            $this->prepreConcreteInheritance($schema);
+
             /** @var $tables DOMNodeList */
             $tables = $schema->getElementsByTagName('table');
             /** @var $table DOMElement */
@@ -65,6 +69,8 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
                     $this->checkPhpName($table);
                     $this->publicSchemaFix($table, $schema);
                     $this->checkInherit($table);
+                    $this->checkConcreteInheritance($table, $schema);
+
                     $this->checkView($table, $schema);
                     $this->checkTree($table, $schema);
                     $this->checkManyToMany($table, $schema);
@@ -337,7 +343,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         }
 
         $tableName = $table->getAttribute('name');
-        if (preg_match('/2/', $tableName) || array_search($tableName, $allowed) !== false) {
+        if (array_search($tableName, $allowed) !== false) {
             echo "\t" . ' found:' . $tableName . "\n";
             $table->setAttribute('isCrossRef', 'true');
             $this->checkCrossForeignKeysOrder($table, $schema);
@@ -450,7 +456,6 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         }
     }
 
-
     private function checkSortable(DOMElement $table, DOMDocument $schema)
     {
 
@@ -503,13 +508,13 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         if (isset($config[$tableName])) {
             $params = $config[$tableName];
 
-     /*       $slugColumn = $params['slug_column']; //"alias"
-            $slugPattern = $params['slug_pattern']; //{Name}
-            $replacePattern = $params['replace_pattern']; ///[^\w\/]+/u
-            $replacement = $params['replacement']; //-
-            $separator = $params['separator']; //-
-            $permanent = $params['permanent']; //true
-            $scopeColumn = $params['scope_column']; //*/
+            /*       $slugColumn = $params['slug_column']; //"alias"
+                   $slugPattern = $params['slug_pattern']; //{Name}
+                   $replacePattern = $params['replace_pattern']; ///[^\w\/]+/u
+                   $replacement = $params['replacement']; //-
+                   $separator = $params['separator']; //-
+                   $permanent = $params['permanent']; //true
+                   $scopeColumn = $params['scope_column']; //*/
 
             $sxe = new SimpleXMLElement('
                 <behavior name="sluggable">
@@ -580,5 +585,109 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
                 $table->appendChild($behavior);
             }
         }
+    }
+
+    private function checkConcreteInheritance(DOMElement $table, DOMDocument $schema)
+    {
+        //echo '::checking trees' . "\n";
+
+        $config = array();
+        if ($this->config->get('ci', false)) {
+            $config = $this->config->ci->toArray();
+        }
+
+        $tableName = $table->getAttribute('name');
+        if (isset($config[$tableName])) {
+            echo "\t" . ' found:' . $tableName . "\n";
+
+            //add behavior
+            $behavior = $schema->createElement('behavior');
+            $behavior->setAttribute('name', 'concrete_inheritance');
+            $table->appendChild($behavior);
+
+            $ci = $schema->createElement('parameter');
+            $ci->setAttribute('name', 'extends');
+            $ci->setAttribute('value', $config[$tableName]);
+
+            $behavior->appendChild($ci);
+
+            //remove parent fields
+
+            $xpath = new DOMXPath($schema);
+
+            $tmp = [];
+            foreach ($this->ciMap[$config[$tableName]]["col"] as $columnName) {
+                $tmp[] = '@name="' . $columnName . '"';
+            }
+
+            $qry = './column[' . implode(" or ", $tmp) . ']';
+            $columns = $xpath->query($qry, $table);
+
+            foreach ($columns as $column) {
+                $column->parentNode->removeChild($column);
+            }
+
+
+            $tmp = [];
+            foreach ($this->ciMap[$config[$tableName]]["fk"] as $fkName) {
+                $tmp[] = '@foreignTable="' . $fkName . '"';
+            }
+
+            $qry = './foreign-key[' . implode(" or ", $tmp) . ']';
+            $fks = $xpath->query($qry, $table);
+
+            foreach ($fks as $fk) {
+                $fk->parentNode->removeChild($fk);
+            }
+
+        }
+    }
+
+    private function prepreConcreteInheritance(DOMDocument $schema)
+    {
+        $map = [];
+
+        $config = array();
+        if ($this->config->get('ci', false)) {
+            $mains = $this->config->ci->get('main');
+            if ($mains) {
+                $config = $mains->toArray();
+            }
+        }
+        foreach ($config as $mainTable) {
+            //delete descendant
+            $xpath = new DOMXPath($schema);
+            $tables = $xpath->query('//table[@name="' . $mainTable . '"]');
+
+            /** @var DOMElement $table */
+            foreach ($tables as $table) {
+                $dcs = $xpath->query('./column[@name="descendant_class"]', $table);
+
+                /** @var DOMElement $dc */
+                foreach ($dcs as $dc) {
+                    $dc->parentNode->removeChild($dc);
+                }
+                //prepare column map to delete on children
+                $mapTable = [
+                    "col" => [],
+                    "fk" => []
+                ];
+                $columns = $xpath->query('./column', $table);
+                /** @var DOMElement $column */
+                foreach ($columns as $column) {
+                    $mapTable["col"][] = $column->getAttribute("name");
+                }
+
+                $fks = $xpath->query('./foreign-key', $table);
+                /** @var DOMElement $column */
+                foreach ($fks as $fk) {
+                    $mapTable["fk"][] = $fk->getAttribute("foreignTable");
+                }
+
+                $map[$table->getAttribute("name")] = $mapTable;
+            }
+        }
+        $this->ciMap = $map;
+
     }
 }
