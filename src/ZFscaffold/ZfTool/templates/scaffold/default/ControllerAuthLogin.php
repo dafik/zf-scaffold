@@ -47,7 +47,7 @@ class VAR_controllerNamePrefixLoginController extends VAR_extends
         } else {
             $values = $form->getValues();
 
-            $adapter = new Dfi_Auth_Adapter_Db($values['login'], $values['password'], array(
+            $adapter = new Dfi\Auth\Adapter\Db($values['login'], $values['password'], array(
                     'table' => 'VAR_authTable',
                     'loginField' => 'VAR_authLoginField',
                     'passwordField' => 'VAR_authPasswordField',

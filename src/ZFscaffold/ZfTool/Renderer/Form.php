@@ -54,7 +54,7 @@ class ZFscaffold_ZfTool_Renderer_Form extends ZFscaffold_ZfTool_Renderer_Abstrac
             } elseif ($referenceTableClass) {
 
                 $fieldConfigs[] = "->setLabel('" . $field->getPhpName() . "')";
-                $fieldConfigs[] = '->setMultiOptions(array("" => "- - Select - -") + Dfi_Propel_Adapter_Options::get(\'' . $baseClass . '\'))';
+                $fieldConfigs[] = '->setMultiOptions(array("" => "- - Select - -") + Dfi\\Propel\\Adapter\\Options::get(\'' . $baseClass . '\'))';
 
 
                 if ($field->isNotNull()) {

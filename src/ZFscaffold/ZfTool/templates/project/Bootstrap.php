@@ -9,7 +9,6 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     {
 
         $autoloader = Zend_Loader_Autoloader::getInstance();
-        $autoloader->registerNamespace('Dfi_');
         $autoloader->registerNamespace('application_');
         $autoloader->registerNamespace('EasyBib_');
         // $autoloader->registerNamespace('nusoap_');
@@ -81,7 +80,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         } catch (Exception $e) {
             $logFiles = array(_APP_LOG_FILE, _ERROR_LOG_FILE, _DEBUG_LOG_FILE, _SHUTDOWN_LOG_FILE, _PROPEL_LOG_FILE);
             foreach ($logFiles as $logFile) {
-                if (!Dfi_File::isWriteable($logFile)) {
+                if (!Dfi\File::isWriteable($logFile)) {
                     throw new Exception('file ' . $logFile . ' is not readeable');
                 }
             }
@@ -96,17 +95,17 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         ini_set('display_errors', 0);
         ini_set('error_log', _LOG_PATH . 'php.errors.log');
 
-        set_error_handler(array('Dfi_Error_Handler', 'errorHandler'), E_ALL);
-        register_shutdown_function(array('Dfi_Error_Handler', 'shutdown'));
+        set_error_handler(array('Dfi\\Error\\Handler', 'errorHandler'), E_ALL);
+        register_shutdown_function(array('Dfi\\Error\\Handler', 'shutdown'));
 
-        if (Dfi_App_Config::get('main.showDebug')) {
+        if (Dfi\App\Config::get('main.showDebug')) {
             Zend_Controller_Front::getInstance()->throwExceptions(true);
             ini_set('display_errors', 1);
         }
 
 
         $front = Zend_Controller_Front::getInstance();
-        $front->registerPlugin(new Dfi_Controller_Plugin_Error());
+        $front->registerPlugin(new Dfi\Controller\Plugin\Error());
 
     }
 
@@ -121,17 +120,17 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 
     protected function _initDatabase()
     {
-        if (Zend_Loader::isReadable(Dfi_App_Config::get('db.config'))) {
+        if (Zend_Loader::isReadable(Dfi\App\Config::get('db.config'))) {
 
             try {
                 $logger = Zend_Registry::get('propelLogger');
-                $adapter = new Dfi_Log_Adapter_Propel2Zend($logger);
+                $adapter = new Dfi\Log\Adapter\Propel2Zend($logger);
 
                 /** @noinspection PhpIncludeInspection */
                 require_once 'Propel.php';
 
                 Propel::setLogger($adapter);
-                Propel::init(Dfi_App_Config::get('db.config'));
+                Propel::init(Dfi\App\Config::get('db.config'));
             } catch (Exception $e) {
                 throw new Exception('Can\'t setup database: ' . $e->getMessage());
             }
@@ -144,9 +143,9 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 
     protected function _initActionHelpers()
     {
-        Zend_Controller_Action_HelperBroker::addPrefix('Dfi_Controller_Action_Helper');
+        Zend_Controller_Action_HelperBroker::addPrefix('Dfi\\Controller\\Action\\Helper');
 
-        Zend_Controller_Action_HelperBroker::addHelper(Dfi_Controller_Action_Helper_Messages::getInstance());
+        Zend_Controller_Action_HelperBroker::addHelper(Dfi\Controller\Action\Helper\Messages::getInstance());
         Zend_Controller_Action_HelperBroker::getStaticHelper('ViewRenderer');
     }
 
@@ -173,7 +172,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $view->doctype('XHTML1_STRICT');
 
 
-        $view->addHelperPath(array(_BASE_PATH . 'library/Dfi/View/Helper', 'Dfi/View/Helper/'), 'Dfi_View_Helper_');
+        $view->addHelperPath(array(_BASE_PATH . 'library/Dfi/View/Helper', 'Dfi/View/Helper/'), 'Dfi\\View\\Helper\\');
         $view->addBasePath(APPLICATION_PATH . '/layouts/partials/');
 
 

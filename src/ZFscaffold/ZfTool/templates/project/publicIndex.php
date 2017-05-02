@@ -45,7 +45,7 @@ try {
 } catch (Exception $e) {
 
     try {
-        $guid = Dfi_Error_Report::saveException($e);
+        $guid = Dfi\Error\Report::saveException($e);
     } catch (Exception $e) {
         $guid = false;
     }

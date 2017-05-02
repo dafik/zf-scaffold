@@ -16,7 +16,7 @@ class HashableBehavior extends Behavior
  */
 public function getHashable()
 {
-    return Dfi_IdEncoder::encode(\$this->getPrimaryKey());;
+    return Dfi\\Crypt\\Integer::encode(\$this->getPrimaryKey());;
 }
 ";
     }
@@ -44,7 +44,7 @@ public function getHashable()
  */
 public function filterByHashable(\$hash)
 {
-    return \$this->filterByPrimaryKey(Dfi_IdEncoder::decode(\$hash));;
+    return \$this->filterByPrimaryKey(Dfi\\Crypt\\Integer::decode(\$hash));;
 }
 ";
     }

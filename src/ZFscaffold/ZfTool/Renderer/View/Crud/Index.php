@@ -41,7 +41,7 @@ class ZFscaffold_ZfTool_Renderer_View_Crud_Index extends ZFscaffold_ZfTool_Rende
                 /** @var $refTableDefinition TableMap */
                 $refTableDefinition = $this->getObject('tables')[$refTableName];
 
-                $columnFilters = '<?= $this->formSelect(\'' . $field->getName() . '\', $this->param' . $field->getName() . ', array(\'class\'=>\'form-control\',\'onchange\' => \'updateFilters(\\\'' . $field->getName() . '\\\', this.options[this.selectedIndex].value)\'), array(\'\' => \'- - Change - -\') + Dfi_Propel_Adapter_Options::get(\'' . $refTableDefinition->getPhpName() . '\'));?>';
+                $columnFilters = '<?= $this->formSelect(\'' . $field->getName() . '\', $this->param' . $field->getName() . ', array(\'class\'=>\'form-control\',\'onchange\' => \'updateFilters(\\\'' . $field->getName() . '\\\', this.options[this.selectedIndex].value)\'), array(\'\' => \'- - Change - -\') + Dfi\\Propel\\Adapter\\Options::get(\'' . $refTableDefinition->getPhpName() . '\'));?>';
 
                 if ($referenceData->getType() == RelationMap::MANY_TO_ONE) {
                     $renderedFieldData = array('$linkedRow = $model->get' . $referenceData->getName() . '();');

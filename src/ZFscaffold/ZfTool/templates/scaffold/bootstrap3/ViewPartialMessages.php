@@ -13,8 +13,8 @@
         <div class="alert alert-success"><?= $confirmation ?></div>
     <? } ?>
 <? } ?>
-<? if (count($this->messages[Dfi_Controller_Action_Helper_Messages::TYPE_DEBUG]) > 0) { ?>
-    <? foreach ($this->messages[Dfi_Controller_Action_Helper_Messages::TYPE_DEBUG] as $debug) { ?>
+<? if (count($this->messages[Dfi\Controller\Action\Helper\Messages::TYPE_DEBUG]) > 0) { ?>
+    <? foreach ($this->messages[Dfi\Controller\Action\Helper\Messages::TYPE_DEBUG] as $debug) { ?>
         <div class="alert alert-info"><?= $debug ?></div>
     <? } ?>
 <? } ?>

@@ -35,7 +35,7 @@ class VAR_controllerName extends VAR_extends
         }
         $pager = $qry->paginate($pageNumber, 20);
 
-        $paginator = new Zend_Paginator(new Dfi_Paginator_Adapter_PropelPager($pager));
+        $paginator = new Zend_Paginator(new Dfi\Paginator\Adapter\PropelPager($pager));
         $paginator
             ->setItemCountPerPage(20)
             ->setCurrentPageNumber($pageNumber);
@@ -63,7 +63,7 @@ class VAR_controllerName extends VAR_extends
                 $values = $form->getValues();
 
                 $model = new VAR_tablePhpName();
-                Dfi_Propel_Adapter_ModelValues::setByArray($model, $values);
+                Dfi\Propel\Adapter\ModelValues::setByArray($model, $values);
                 $model->save();
 
                 $this->_helper->redirector('index');
@@ -94,7 +94,7 @@ class VAR_controllerName extends VAR_extends
             if ($form->isValid($this->_request->getPost())) {
                 $values = $form->getValues();
 
-                Dfi_Propel_Adapter_ModelValues::setByArray($model, $values);
+                Dfi\Propel\Adapter\ModelValues::setByArray($model, $values);
                 $model->save();
 
                 $this->_helper->redirector('index');
