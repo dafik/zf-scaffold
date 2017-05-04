@@ -197,7 +197,6 @@ class ZFscaffold_ZfTool_FormsProvider extends Zend_Tool_Framework_Provider_Abstr
 
             $fullBody =
                 '<?php
-class  forms_' . $newClassName . ' extends Dfi\\Form
 class  forms_' . $newClassName . ' extends \\Dfi\\Form
 {
     public function init()

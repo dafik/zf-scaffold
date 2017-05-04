@@ -81,8 +81,8 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         ini_set('display_errors', 0);
         ini_set('error_log', _LOG_PATH . 'php.errors.log');
 
-        set_error_handler(array('Dfi\\Error\\Handler', 'errorHandler'), E_ALL);
-        register_shutdown_function(array('Dfi\\Error\\Handler', 'shutdown'));
+        set_error_handler(array('\\Dfi\\Error\\Handler', 'errorHandler'), E_ALL);
+        register_shutdown_function(array('\\Dfi\\Error\\Handler', 'shutdown'));
 
         if (Dfi\App\Config::get('main.showDebug')) {
             Zend_Controller_Front::getInstance()->throwExceptions(true);
@@ -128,7 +128,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 
     protected function _initActionHelpers()
     {
-        Zend_Controller_Action_HelperBroker::addPrefix('Dfi\\Controller\\Action\\Helper');
+        Zend_Controller_Action_HelperBroker::addPrefix('\\Dfi\\Controller\\Action\\Helper');
 
         Zend_Controller_Action_HelperBroker::addHelper(Dfi\Controller\Action\Helper\Messages::getInstance());
         Zend_Controller_Action_HelperBroker::getStaticHelper('ViewRenderer');
@@ -157,7 +157,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $view->doctype('XHTML1_STRICT');
 
 
-        $view->addHelperPath(array(_BASE_PATH . 'library/Dfi/View/Helper', 'Dfi/View/Helper/'), 'Dfi\\View\\Helper\\');
+        $view->addHelperPath(array(_BASE_PATH . 'library/Dfi/View/Helper', 'Dfi/View/Helper/'), '\\Dfi\\View\\Helper\\');
         $view->addBasePath(APPLICATION_PATH . '/layouts/partials/');
 
 

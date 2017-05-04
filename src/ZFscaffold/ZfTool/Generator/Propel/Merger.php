@@ -79,7 +79,7 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
 
                     $this->checkSortable($table, $schema);
                     $this->checkSlugable($table, $schema);
-                    //$this->checkHashable($table, $schema);
+                    $this->checkHashable($table, $schema);
 
                     $this->checkCrossReference($table);
                 } else {

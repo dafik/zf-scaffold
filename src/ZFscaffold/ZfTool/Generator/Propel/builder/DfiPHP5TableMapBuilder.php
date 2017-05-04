@@ -38,7 +38,7 @@ class DfiPHP5TableMapBuilder extends PHP5TableMapBuilder
  *
  * @package    propel.generator." . $this->getPackage() . "
  */
-class " . $this->getClassname() . " extends Dfi\\Propel\\Map\\TableMap
+class " . $this->getClassname() . " extends \\Dfi\\Propel\\Map\\TableMap
 {
 ";
     }
