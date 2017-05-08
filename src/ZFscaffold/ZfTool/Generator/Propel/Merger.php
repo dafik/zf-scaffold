@@ -69,6 +69,8 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
                     $this->checkPhpName($table);
                     $this->publicSchemaFix($table, $schema);
                     $this->checkInherit($table);
+                    $this->checkFk($table, $schema);
+
                     $this->checkConcreteInheritance($table, $schema);
 
                     $this->checkView($table, $schema);
@@ -398,6 +400,33 @@ class ZFscaffold_ZfTool_Generator_Propel_Merger
         if (isset($this->references[$tableName])) {
 
             ;
+        }
+    }
+
+    private function checkFk(DOMElement $table, DOMDocument $schema)
+    {
+        $tableName = $table->getAttribute('name');
+
+        if ($this->config->get('fk', false)) {
+            $config = $this->config->fk->toArray();
+        }
+        if (isset($config[$tableName])) {
+            $config = $config[$tableName];
+            $path = sprintf("//table[@name='%s']/foreign-key", $tableName);
+            $xpath = new DOMXPath($schema);
+            /** @var DOMNodeList $fk */
+            $fk = $xpath->evaluate($path);
+
+            /** @var DOMElement $fkNode */
+            foreach ($fk as $fkNode) {
+
+                $fkTable = (string)$fkNode->getAttribute("foreignTable");
+                if (isset($config[$fkTable])) {
+                    if (isset($config[$fkTable]['phpName'])) {
+                        $fkNode->setAttribute('phpName', $config[$fkTable]['phpName']);
+                    }
+                }
+            }
         }
     }
 
