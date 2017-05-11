@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <config>
-    <!--
-        <log>
-            <ident>schema</ident>
-            <name>propel.log</name>
-            <level>2</level>
-            <type>file</type>
-        </log>
-    -->
+    <log>
+        <ident>schema</ident>
+        <name>propel.log</name>
+        <level>2</level>
+        <type>file</type>
+    </log>
     <propel>
         <datasources default="crm">
             <datasource id="crm">
